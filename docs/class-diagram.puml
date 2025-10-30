@@ -1,0 +1,18 @@
+﻿@startuml
+skinparam backgroundColor #EEEBDC
+
+class Main
+class GuiController
+class GameController
+class SimpleBoard
+class MatrixOperations
+
+Main --> GuiController
+GuiController --> GameController
+GameController --> SimpleBoard
+SimpleBoard --> MatrixOperations
+
+note right of GuiController
+  Renders board + next piece
+end note
+@enduml
