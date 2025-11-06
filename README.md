@@ -24,8 +24,8 @@
 
 ## Visual & UI Features
 - [x] Game Over Display
-      - [ ] Restart Option
-      - [ ] Back to Main Menu
+- [ ] Restart Option
+- [ ] Back to Main Menu
 - [x] Score Display
 - [ ] Pause / Resume Menu
 - [ ] Main Menu
