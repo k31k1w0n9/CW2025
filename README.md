@@ -15,10 +15,21 @@
 > java --module-path "C:\javafx-sdk-21\lib" --add-modules javafx.controls,javafx.fxml -cp out/production/CW2025 com.comp2042.Main
 > `
 
-## Features Implemented
-- [x] Next piece preview
-- [ ] Hard drop
-- [ ] Levels & speed
+## Gsmeplay Features
+- [x] Next Piece Preview
+- [ ] Hard Drop
+- [ ] Twists (Spin Moves)
+- [ ] Levels & Speed
+
+
+## Visual & UI Features
+- [x] Game Over Display
+      - [ ] Restart Option
+      - [ ] Back to Main Menu
+- [x] Score Display
+- [ ] Pause / Resume Menu
+- [ ] Main Menu
+- [ ] Sound Effects & Background Music
 
 ## Documentation
 - Javadoc
@@ -26,4 +37,4 @@
 - This README
 
 ---
-*Last updated: 10/30/2025 11:54:00*
+*Last updated: 06/11/2025 16:11:00*
