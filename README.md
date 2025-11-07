@@ -17,6 +17,7 @@
 
 ## Gsmeplay Features
 - [x] Next Piece Preview
+- [ ] Ghost Piece (Drop Preview)
 - [ ] Hard Drop
 - [ ] Twists (Spin Moves)
 - [ ] Levels & Speed
@@ -33,8 +34,8 @@
 
 ## Documentation
 - Javadoc
-- docs/class-diagram.puml
-- This README
+- Design.pdf
+- This README.md
 
 ---
-*Last updated: 06/11/2025 16:11:00*
+*Last updated: 08/11/2025 02:10:00*
