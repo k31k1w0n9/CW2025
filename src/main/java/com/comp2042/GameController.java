@@ -14,6 +14,10 @@ public class GameController implements InputEventListener {
         viewGuiController.bindScore(board.getScore().scoreProperty());
     }
 
+    private void refreshNextPiece() {
+        viewGuiController.updateNextPiece(board.getViewData().getNextBrickData());
+    }
+
     @Override
     public DownData onDownEvent(MoveEvent event) {
         boolean canMove = board.moveBrickDown();
@@ -26,6 +30,8 @@ public class GameController implements InputEventListener {
             }
             if (board.createNewBrick()) {
                 viewGuiController.gameOver();
+            } else {
+                refreshNextPiece();
             }
 
             viewGuiController.refreshGameBackground(board.getBoardMatrix());
