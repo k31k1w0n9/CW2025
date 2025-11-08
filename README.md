@@ -28,7 +28,7 @@
 - [ ] Restart Option
 - [ ] Back to Main Menu
 - [x] Score Display
-- [ ] Pause / Resume Menu
+- [x] Pause / Resume Menu
 - [ ] Main Menu
 - [ ] Sound Effects & Background Music
 
@@ -38,4 +38,4 @@
 - This README.md
 
 ---
-*Last updated: 08/11/2025 02:10:00*
+*Last updated: 08/11/2025 16:55:00*
