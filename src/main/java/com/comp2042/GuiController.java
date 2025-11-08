@@ -43,6 +43,9 @@ public class GuiController implements Initializable {
     private GridPane brickPanel;
 
     @FXML
+    private PauseMenuPanel pauseMenuPanel;
+
+    @FXML
     private GameOverPanel gameOverPanel;
 
     private Rectangle[][] displayMatrix;
@@ -83,17 +86,44 @@ public class GuiController implements Initializable {
                         keyEvent.consume();
                     }
                 }
+                if (keyEvent.getCode() == KeyCode.P || keyEvent.getCode() == KeyCode.ESCAPE) {
+                    togglePause();
+                    keyEvent.consume();
+                }
+
                 if (keyEvent.getCode() == KeyCode.N) {
                     newGame(null);
                 }
             }
         });
         gameOverPanel.setVisible(false);
+        pauseMenuPanel.setVisible(false);
+
+        // Setup pause menu buttons
+        pauseMenuPanel.getResumeButton().setOnAction(e -> togglePause());
+        pauseMenuPanel.getNewGameButton().setOnAction(e -> newGame(null));
+        pauseMenuPanel.getQuitButton().setOnAction(e -> System.exit(0));
 
         final Reflection reflection = new Reflection();
         reflection.setFraction(0.8);
         reflection.setTopOpacity(0.9);
         reflection.setTopOffset(-12);
+    }
+
+    private void togglePause() {
+        if (isGameOver.get()) {
+            return; // Can't pause if game is over
+        }
+
+        isPause.set(!isPause.get());
+        pauseMenuPanel.setVisible(isPause.get());
+
+        if (isPause.get()) {
+            timeLine.pause();
+        } else {
+            timeLine.play();
+            gamePanel.requestFocus();
+        }
     }
 
     /** Renders the next tetromino in the 4×4 preview grid */
@@ -237,6 +267,7 @@ public class GuiController implements Initializable {
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
         gameOverPanel.setVisible(false);
+        pauseMenuPanel.setVisible(false);
         eventListener.createNewGame();
         gamePanel.requestFocus();
         timeLine.play();

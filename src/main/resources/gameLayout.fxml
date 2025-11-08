@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.comp2042.GameOverPanel?>
+<?import com.comp2042.PauseMenuPanel?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.Group?>
@@ -15,6 +16,8 @@
                 <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30" layoutX="40"/>
             </center>
         </BorderPane>
+        <!-- Current brick overlay -->
+        <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
 
         <!-- Notifications -->
         <Group fx:id="groupNotification" layoutX="14" layoutY="203">
@@ -23,8 +26,11 @@
             </VBox>
         </Group>
 
-        <!-- Current brick overlay -->
-        <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
+        <!-- Pause Menu Overlay -->
+        <PauseMenuPanel fx:id="pauseMenuPanel" layoutX="0" layoutY="0"
+                        prefWidth="400" prefHeight="500"/>
+
+
     </Pane>
 
     <!-- Right side: NEXT + SCORE -->
