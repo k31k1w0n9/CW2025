@@ -1,15 +1,18 @@
 package com.comp2042;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public final class ViewData {
 
     private final int[][] brickData;
     private final int xPosition;
     private final int yPosition;
-    private final int[][] nextBrickData;
+    private final List<int[][]> nextBrickData;
     private final int ghostXPosition;
     private final int ghostYPosition;
 
-    public ViewData(int[][] brickData, int xPosition, int yPosition, int[][] nextBrickData, int ghostXPosition, int ghostYPosition) {
+    public ViewData(int[][] brickData, int xPosition, int yPosition, List<int[][]> nextBrickData, int ghostXPosition, int ghostYPosition) {
         this.brickData = brickData;
         this.xPosition = xPosition;
         this.yPosition = yPosition;
@@ -30,13 +33,17 @@ public final class ViewData {
         return yPosition;
     }
 
-    public int[][] getNextBrickData() {
-        return MatrixOperations.copy(nextBrickData);
+    public List<int[][]> getNextBrickData() {
+        return nextBrickData.stream()
+                .map(MatrixOperations::copy)
+                .collect(Collectors.toList());
     }
 
     public int getGhostXPosition() {
         return ghostXPosition;
     }
 
-    public int getGhostYPosition() { return  ghostYPosition; }
+    public int getGhostYPosition() {
+        return ghostYPosition;
+    }
 }

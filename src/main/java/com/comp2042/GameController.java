@@ -2,7 +2,7 @@ package com.comp2042;
 
 public class GameController implements InputEventListener {
 
-    private Board board = new SimpleBoard(25, 10);
+    private Board board = new SimpleBoard(20, 10);
 
     private final GuiController viewGuiController;
 
@@ -15,7 +15,7 @@ public class GameController implements InputEventListener {
     }
 
     private void refreshNextPiece() {
-        viewGuiController.updateNextPiece(board.getViewData().getNextBrickData());
+        viewGuiController.updateNextPieces(board.getViewData().getNextBrickData());
     }
 
     @Override
@@ -61,7 +61,6 @@ public class GameController implements InputEventListener {
         board.rotateLeftBrick();
         return board.getViewData();
     }
-
 
     @Override
     public void createNewGame() {

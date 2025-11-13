@@ -16,6 +16,8 @@ public interface Board {
 
     int getGhostYPosition();
 
+    int getGhostXPosition();
+
     ViewData getViewData();
 
     void mergeBrickToBackground();

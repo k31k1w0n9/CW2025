@@ -5,6 +5,9 @@ import com.comp2042.logic.bricks.BrickGenerator;
 import com.comp2042.logic.bricks.RandomBrickGenerator;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SimpleBoard implements Board {
 
@@ -15,14 +18,23 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
+    private final List<Brick> nextPieceQueue = new ArrayList<>();
 
     public SimpleBoard(int width, int height) {
-        this.width = width;
-        this.height = height;
-        currentGameMatrix = new int[width][height];
+        this.width = width;   // 20 (rows)
+        this.height = height; // 10 (cols)
+        currentGameMatrix = new int[width][height]; // [20][10]
         brickGenerator = new RandomBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
+        refillNextPieceQueue();
+        createNewBrick();
+    }
+
+    private void refillNextPieceQueue() {
+        while (nextPieceQueue.size() < 5) {
+            nextPieceQueue.add(brickGenerator.getBrick());
+        }
     }
 
     @Override
@@ -38,7 +50,6 @@ public class SimpleBoard implements Board {
             return true;
         }
     }
-
 
     @Override
     public boolean moveBrickLeft() {
@@ -83,8 +94,14 @@ public class SimpleBoard implements Board {
 
     @Override
     public boolean createNewBrick() {
-        Brick currentBrick = brickGenerator.getBrick();
+        if (nextPieceQueue.isEmpty()) {
+            refillNextPieceQueue();
+        }
+
+        Brick currentBrick = nextPieceQueue.remove(0);
         brickRotator.setBrick(currentBrick);
+        refillNextPieceQueue();
+
         currentOffset = new Point(3, 0);
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
@@ -96,11 +113,15 @@ public class SimpleBoard implements Board {
 
     @Override
     public ViewData getViewData() {
+        List<int[][]> nextShapes = nextPieceQueue.stream()
+                .map(brick -> brick.getShapeMatrix().get(0))
+                .collect(Collectors.toList());
+
         return new ViewData(
                 brickRotator.getCurrentShape(),
                 (int) currentOffset.getX(),
                 (int) currentOffset.getY(),
-                brickGenerator.getNextBrick().getShapeMatrix().get(0),
+                nextShapes,
                 getGhostXPosition(),
                 getGhostYPosition()
         );
@@ -111,18 +132,20 @@ public class SimpleBoard implements Board {
         currentGameMatrix = MatrixOperations.merge(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
-    // Keep moving until we hit something
+    @Override
     public int getGhostYPosition() {
         int ghostY = (int) currentOffset.getY();
+        int currentX = (int) currentOffset.getX();
+        int[][] currentShape = brickRotator.getCurrentShape();
 
-
-        while (!MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), ghostY + 1)) {
+        while (!MatrixOperations.intersect(currentGameMatrix, currentShape, currentX, ghostY + 1)) {
             ghostY++;
         }
 
         return ghostY;
     }
 
+    @Override
     public int getGhostXPosition() {
         return (int) currentOffset.getX();
     }
@@ -132,7 +155,6 @@ public class SimpleBoard implements Board {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
         currentGameMatrix = clearRow.getNewMatrix();
         return clearRow;
-
     }
 
     @Override
@@ -140,11 +162,12 @@ public class SimpleBoard implements Board {
         return score;
     }
 
-
     @Override
     public void newGame() {
         currentGameMatrix = new int[width][height];
         score.reset();
+        nextPieceQueue.clear();
+        refillNextPieceQueue();
         createNewBrick();
     }
 }
