@@ -17,18 +17,21 @@
 
 ## Gsmeplay Features
 - [x] Next Piece Preview
-- [ ] Ghost Piece (Drop Preview)
-- [ ] Hard Drop
+- [x] Ghost Piece (Drop Preview)
+- [x] Hard Drop
+- [ ] Hold Piece
 - [ ] Twists (Spin Moves)
 - [ ] Levels & Speed
 
 
 ## Visual & UI Features
-- [x] Game Over Display
+- [x] Game Over Panel
 - [ ] Restart Option
 - [ ] Back to Main Menu
 - [x] Score Display
-- [x] Pause / Resume Menu
+- [x] High Score Display
+- [x] Pause Panel
+- [x] Controls Panel
 - [ ] Main Menu
 - [ ] Sound Effects & Background Music
 
