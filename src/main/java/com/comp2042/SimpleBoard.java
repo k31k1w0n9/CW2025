@@ -151,6 +151,23 @@ public class SimpleBoard implements Board {
     }
 
     @Override
+    public int hardDrop() {
+        int dropDistance = 0;
+        int currentX = (int) currentOffset.getX();
+        int currentY = (int) currentOffset.getY();
+        int[][] currentShape = brickRotator.getCurrentShape();
+
+        // Calculate how far the piece will drop
+        int ghostY = getGhostYPosition();
+        dropDistance = ghostY - currentY;
+
+        // Move the piece to the ghost position
+        currentOffset.setLocation(currentX, ghostY);
+
+        return dropDistance;
+    }
+
+    @Override
     public ClearRow clearRows() {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
         currentGameMatrix = clearRow.getNewMatrix();

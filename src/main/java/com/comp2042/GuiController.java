@@ -15,7 +15,6 @@ import javafx.scene.Group;
 import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -46,6 +45,7 @@ public class GuiController implements Initializable {
     @FXML private Label currentScoreLabel;
     @FXML private Label levelLabel;
     @FXML private Label linesLabel;
+    @FXML private Label highScoreLabel;
 
     @FXML
     private Group groupNotification;
@@ -103,16 +103,6 @@ public class GuiController implements Initializable {
         );
     }
 
-    @FXML
-    public void toggleDebugGrids() {
-        showDebugGrids = !showDebugGrids;
-        if (showDebugGrids) {
-            createDebugGrids();
-        } else {
-            removeDebugGrids();
-        }
-    }
-
     private Rectangle[][] displayMatrix;
 
     private InputEventListener eventListener;
@@ -130,24 +120,16 @@ public class GuiController implements Initializable {
 
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
-    private GridPane brickMatrixGrid;
+    private int currentScore = 0;
 
-    private GridPane displayMatrixGrid;
-
-    private boolean showDebugGrids = false;
+    private HighScoreManager highScoreManager;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Ensure cell dimensions match brick size exactly (no gaps)
         cellWidth = BRICK_SIZE;
         cellHeight = BRICK_SIZE;
 
-        // Configure GridPane to have no padding and align to top-left
-        gamePanel.setHgap(0);
-        gamePanel.setVgap(0);
-        gamePanel.setAlignment(javafx.geometry.Pos.TOP_LEFT);
-        // Ensure GridPane has no padding that could offset the cells
-        gamePanel.setPadding(new Insets(0));
+        highScoreManager = new HighScoreManager();
 
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         gamePanel.setFocusTraversable(true);
@@ -172,6 +154,11 @@ public class GuiController implements Initializable {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
                         keyEvent.consume();
                     }
+                    // Hard drop with SPACE key
+                    if (keyEvent.getCode() == KeyCode.SPACE) {
+                        hardDrop(new MoveEvent(EventType.HARD_DROP, EventSource.USER));
+                        keyEvent.consume();
+                    }
                 }
                 if (keyEvent.getCode() == KeyCode.P || keyEvent.getCode() == KeyCode.ESCAPE) {
                     togglePause();
@@ -181,14 +168,20 @@ public class GuiController implements Initializable {
                 if (keyEvent.getCode() == KeyCode.N) {
                     newGame(null);
                 }
-                // Add this inside the gamePanel.setOnKeyPressed handler
-                if (keyEvent.getCode() == KeyCode.G) {
-                    toggleDebugGrids();
-                    keyEvent.consume();
-                }
             }
         });
-        gameOverPanel.setVisible(false);
+
+        // Initialize game over panel
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(false);
+            gameOverPanel.getRetryButton().setOnAction(e -> newGame(null));
+            gameOverPanel.getQuitButton().setOnAction(e -> System.exit(0));
+            gameOverPanel.getHomeButton().setOnAction(e -> {
+                System.out.println("Home button clicked");
+                // Add navigation to main menu here
+            });
+        }
+
         pauseMenuPanel.setVisible(false);
         if (pauseContainer != null) {
             pauseContainer.setVisible(false);
@@ -206,12 +199,6 @@ public class GuiController implements Initializable {
             controlsContainer.setVisible(false);
             controlsContainer.setMouseTransparent(true);
             controlsPanel.getDoneButton().setOnAction(e -> hideControls());
-            controlsPanel.getPrevButton().setOnAction(e -> {
-                System.out.println("Previous clicked");
-            });
-            controlsPanel.getNextButton().setOnAction(e -> {
-                System.out.println("Next clicked");
-            });
         }
         if (overlayLayer != null) {
             overlayLayer.setMouseTransparent(true);
@@ -234,85 +221,9 @@ public class GuiController implements Initializable {
             ghostClip.setWidth(newBounds.getWidth());
             ghostClip.setHeight(newBounds.getHeight());
         });
-    }
 
-    private void createDebugGrids() {
-        // Remove existing grids if any
-        removeDebugGrids();
-
-        // Create brick matrix grid overlay (RED)
-        brickMatrixGrid = new GridPane();
-        brickMatrixGrid.setMouseTransparent(true);
-        brickMatrixGrid.setStyle("-fx-background-color: transparent;");
-
-        // Create display matrix grid overlay (BLUE)
-        displayMatrixGrid = new GridPane();
-        displayMatrixGrid.setMouseTransparent(true);
-        displayMatrixGrid.setStyle("-fx-background-color: transparent;");
-
-        // Add to root pane
-        if (!rootPane.getChildren().contains(brickMatrixGrid)) {
-            rootPane.getChildren().add(brickMatrixGrid);
-        }
-        if (!rootPane.getChildren().contains(displayMatrixGrid)) {
-            rootPane.getChildren().add(displayMatrixGrid);
-        }
-    }
-
-    private void removeDebugGrids() {
-        if (brickMatrixGrid != null) {
-            rootPane.getChildren().remove(brickMatrixGrid);
-            brickMatrixGrid = null;
-        }
-        if (displayMatrixGrid != null) {
-            rootPane.getChildren().remove(displayMatrixGrid);
-            displayMatrixGrid = null;
-        }
-    }
-
-    // Call this method in refreshBrick to update the brick matrix visualization
-    private void updateBrickMatrixDebug(ViewData brick) {
-        if (!showDebugGrids || brickMatrixGrid == null) return;
-
-        brickMatrixGrid.getChildren().clear();
-        Point2D origin = getBoardOrigin();
-        brickMatrixGrid.setLayoutX(origin.getX() + brick.getxPosition() * cellWidth);
-        brickMatrixGrid.setLayoutY(origin.getY() + brick.getyPosition() * cellHeight);
-
-        int[][] brickData = brick.getBrickData();
-        for (int i = 0; i < brickData.length; i++) {
-            for (int j = 0; j < brickData[i].length; j++) {
-                Rectangle cell = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                cell.setFill(Color.TRANSPARENT);
-                cell.setStroke(Color.RED);
-                cell.setStrokeWidth(2);
-                cell.setOpacity(0.6);
-                brickMatrixGrid.add(cell, j, i);
-            }
-        }
-    }
-
-    // Call this method in refreshGameBackground to update the display matrix visualization
-    private void updateDisplayMatrixDebug() {
-        if (!showDebugGrids || displayMatrixGrid == null) return;
-
-        displayMatrixGrid.getChildren().clear();
-        Point2D origin = getBoardOrigin();
-        displayMatrixGrid.setLayoutX(origin.getX());
-        displayMatrixGrid.setLayoutY(origin.getY());
-
-        if (displayMatrix != null) {
-            for (int i = 2; i < displayMatrix.length; i++) {
-                for (int j = 0; j < displayMatrix[i].length; j++) {
-                    Rectangle cell = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                    cell.setFill(Color.TRANSPARENT);
-                    cell.setStroke(Color.BLUE);
-                    cell.setStrokeWidth(1);
-                    cell.setOpacity(0.4);
-                    displayMatrixGrid.add(cell, j, i);
-                }
-            }
-        }
+        // Update high score display
+        updateHighScoreDisplay();
     }
 
     public void togglePause() {
@@ -430,7 +341,8 @@ public class GuiController implements Initializable {
         if (overlayLayer != null) {
             boolean overlaysVisible =
                     (pauseContainer != null && pauseContainer.isVisible()) ||
-                            (controlsContainer != null && controlsContainer.isVisible());
+                            (controlsContainer != null && controlsContainer.isVisible()) ||
+                            (gameOverPanel != null && gameOverPanel.isVisible());
             overlayLayer.setMouseTransparent(!overlaysVisible);
         }
     }
@@ -501,7 +413,6 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData viewData) {
-
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
         for (int i = 0; i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
@@ -599,8 +510,6 @@ public class GuiController implements Initializable {
                 r.setArcWidth(9);
             }
         }
-        // Add debug visualization
-        updateBrickMatrixDebug(brick);
     }
 
     public void refreshGameBackground(int[][] board) {
@@ -609,8 +518,6 @@ public class GuiController implements Initializable {
                 setRectangleData(board[i][j], displayMatrix[i][j]);
             }
         }
-        // Add debug visualization
-        updateDisplayMatrixDebug();
     }
 
     private void setRectangleData(int color, Rectangle rectangle) {
@@ -622,6 +529,20 @@ public class GuiController implements Initializable {
     private void moveDown(MoveEvent event) {
         if (!isPause.get()) {
             DownData downData = eventListener.onDownEvent(event);
+            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                groupNotification.getChildren().add(notificationPanel);
+                notificationPanel.showScore(groupNotification.getChildren());
+            }
+            refreshBrick(downData.getViewData());
+            updateNextPieces(downData.getViewData().getNextBrickData());
+        }
+        gamePanel.requestFocus();
+    }
+
+    private void hardDrop(MoveEvent event) {
+        if (!isPause.get()) {
+            DownData downData = eventListener.onHardDropEvent(event);
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
                 NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
                 groupNotification.getChildren().add(notificationPanel);
@@ -653,23 +574,67 @@ public class GuiController implements Initializable {
         if (linesLabel != null) {
             linesLabel.setText("0");
         }
+
+        // Listen to score changes to update current score
+        integerProperty.addListener((obs, oldVal, newVal) -> {
+            currentScore = newVal.intValue();
+        });
+    }
+
+    private void updateHighScoreDisplay() {
+        if (highScoreLabel != null) {
+            highScoreLabel.setText(String.valueOf(highScoreManager.getHighScore()));
+        }
     }
 
     public void gameOver() {
         timeLine.stop();
-        gameOverPanel.setVisible(true);
         isGameOver.setValue(true);
+
+        if (gameOverPanel != null) {
+            // Get high scores from manager
+            List<HighScoreManager.HighScoreEntry> highScores = highScoreManager.getHighScores();
+            int[] topScores = new int[5];
+
+            for (int i = 0; i < Math.min(5, highScores.size()); i++) {
+                topScores[i] = highScores.get(i).getScore();
+            }
+
+            // Add current score if it's a high score
+            String playerName = "";
+            if (highScoreManager.isHighScore(currentScore)) {
+                playerName = "YOU";
+                highScoreManager.addHighScore(playerName, currentScore);
+
+                // Refresh high scores after adding
+                highScores = highScoreManager.getHighScores();
+                for (int i = 0; i < Math.min(5, highScores.size()); i++) {
+                    topScores[i] = highScores.get(i).getScore();
+                }
+            }
+
+            gameOverPanel.updateHighScores(playerName, currentScore, topScores);
+            gameOverPanel.setVisible(true);
+
+            // Update high score display
+            updateHighScoreDisplay();
+        }
+
+        updateOverlayLayer();
     }
 
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
-        gameOverPanel.setVisible(false);
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(false);
+        }
         pauseMenuPanel.setVisible(false);
         eventListener.createNewGame();
         gamePanel.requestFocus();
         timeLine.play();
         isPause.setValue(false);
         isGameOver.setValue(false);
+        currentScore = 0;
     }
 
     public void pauseGame(ActionEvent actionEvent) {

@@ -110,14 +110,9 @@
                       maxWidth="200" maxHeight="400"
                       pickOnBounds="false"/>
 
-
+                <!-- Notification Group for score bonuses -->
                 <StackPane layoutX="0" layoutY="0" prefWidth="200" prefHeight="400" alignment="CENTER" pickOnBounds="false">
-                    <Group fx:id="groupNotification" mouseTransparent="true">
-                        <VBox alignment="CENTER">
-                            <GameOverPanel fx:id="gameOverPanel"/>
-
-                        </VBox>
-                    </Group>
+                    <Group fx:id="groupNotification" mouseTransparent="true"/>
                 </StackPane>
             </Pane>
         </StackPane>
@@ -144,13 +139,17 @@
                 onAction="#togglePause"/>
     </StackPane>
 
+    <!-- Overlay layer for menus and game over panel -->
     <StackPane fx:id="overlayLayer" alignment="CENTER" pickOnBounds="false" mouseTransparent="true">
         <StackPane fx:id="controlsContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="true">
             <ControlsPanel fx:id="controlsPanel"/>
-
         </StackPane>
         <StackPane fx:id="pauseContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="true">
             <PauseMenuPanel fx:id="pauseMenuPanel"/>
+        </StackPane>
+        <!-- Game Over Panel -->
+        <StackPane alignment="CENTER" pickOnBounds="false">
+            <GameOverPanel fx:id="gameOverPanel"/>
         </StackPane>
     </StackPane>
 
