@@ -1,5 +1,8 @@
 .root {
-    -fx-background-color: #3d4f6d;
+    -fx-background-image: url('background.png');
+    -fx-background-size: cover;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
 }
 
 .gameBoard {
@@ -36,4 +39,98 @@
 .scoreClass {
     -fx-font-size: 18;
     -fx-text-fill: white;
+}
+
+.emoji-button {
+    -fx-font-size: 24px;
+}
+
+/* Name Input Dialog Styles */
+.name-input-dialog {
+    -fx-background-color: rgba(29, 39, 56, 0.98);
+    -fx-border-color: white;
+    -fx-border-width: 3;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 40;
+}
+
+.name-input-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 10, 0.5, 0, 0);
+}
+
+.name-input-score {
+    -fx-font-size: 56px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 10 0 10 0;
+}
+
+.name-input-prompt {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.name-input-field {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-border-color: white;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 10;
+}
+
+/* Panel Button Styles */
+.panel-button {
+    -fx-background-color: rgba(90, 95, 127, 0.8);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-border-color: white;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.panel-button:hover {
+    -fx-background-color: rgba(120, 125, 167, 1.0);
+}
+
+/* Icon Button Styles */
+.icon-button {
+    -fx-background-color: rgba(90, 95, 127, 0.8);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 28px;
+    -fx-border-color: white;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+    -fx-min-width: 70px;
+    -fx-max-width: 70px;
+    -fx-min-height: 70px;
+    -fx-max-height: 70px;
+}
+
+.icon-button:hover {
+    -fx-background-color: rgba(120, 125, 167, 1.0);
+}
+
+/* Quit Button */
+.quit-button {
+    -fx-background-color: rgba(139, 195, 74, 0.8);
+}
+
+.quit-button:hover {
+    -fx-background-color: rgba(139, 195, 74, 1.0);
 }

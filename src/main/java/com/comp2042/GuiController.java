@@ -15,11 +15,7 @@ import javafx.scene.Group;
 import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -35,9 +31,7 @@ public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 20;
 
-    @FXML
-    private GridPane gamePanel;
-
+    @FXML private GridPane gamePanel;
     @FXML private GridPane holdPieceGrid;
     @FXML private VBox nextPiecesContainer;
 
@@ -47,41 +41,41 @@ public class GuiController implements Initializable {
     @FXML private Label linesLabel;
     @FXML private Label highScoreLabel;
 
-    @FXML
-    private Group groupNotification;
+    @FXML private Group groupNotification;
+    @FXML private Pane brickPanel;
+    @FXML private Pane ghostPanel;
+    @FXML private Pane rootPane;
+    @FXML private BorderPane gameBoard;
 
-    @FXML
-    private Pane brickPanel;
+    @FXML private StackPane rootStackPane;
+    @FXML private StackPane mainMenuContainer;
+    @FXML private MainMenuPanel mainMenuPanel;
+    @FXML private StackPane gameContainer;
 
-    @FXML
-    private Pane ghostPanel;
+    @FXML private StackPane pauseContainer;
+    @FXML private PauseMenuPanel pauseMenuPanel;
+    @FXML private StackPane controlsContainer;
+    @FXML private StackPane overlayLayer;
+    @FXML private StackPane gameOverContainer;
+    @FXML private GameOverPanel gameOverPanel;
 
-    @FXML
-    private Pane rootPane;
+    @FXML private StackPane nameInputContainer;
+    @FXML private NameInputDialog nameInputDialog;
+    @FXML private javafx.scene.control.Button pauseButton;
 
-    @FXML
-    private BorderPane gameBoard;
+    private Rectangle[][] displayMatrix;
+    private InputEventListener eventListener;
+    private Rectangle[][] rectangles;
+    private Rectangle[][] ghostRectangles;
+    private double cellWidth;
+    private double cellHeight;
+    private Timeline timeLine;
 
-    @FXML
-    private StackPane pauseContainer;
-
-    @FXML
-    private PauseMenuPanel pauseMenuPanel;
-
-    @FXML
-    private StackPane controlsContainer;
-
-    @FXML
-    private StackPane overlayLayer;
-
-    @FXML
-    private ControlsPanel controlsPanel;
-
-    @FXML
-    private GameOverPanel gameOverPanel;
-
-    @FXML
-    private javafx.scene.control.Button pauseButton;
+    private final BooleanProperty isPause = new SimpleBooleanProperty();
+    private final BooleanProperty isGameOver = new SimpleBooleanProperty();
+    private int currentScore = 0;
+    private HighScoreManager highScoreManager;
+    private KeyBindings keyBindings;
 
     @FXML
     public void onPauseButtonHover() {
@@ -103,84 +97,126 @@ public class GuiController implements Initializable {
         );
     }
 
-    private Rectangle[][] displayMatrix;
-
-    private InputEventListener eventListener;
-
-    private Rectangle[][] rectangles;
-
-    private Rectangle[][] ghostRectangles;
-
-    private double cellWidth;
-    private double cellHeight;
-
-    private Timeline timeLine;
-
-    private final BooleanProperty isPause = new SimpleBooleanProperty();
-
-    private final BooleanProperty isGameOver = new SimpleBooleanProperty();
-
-    private int currentScore = 0;
-
-    private HighScoreManager highScoreManager;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         cellWidth = BRICK_SIZE;
         cellHeight = BRICK_SIZE;
-
         highScoreManager = new HighScoreManager();
+        keyBindings = new KeyBindings();
+
+        // Set background image for entire application
+        if (rootStackPane != null) {
+            try {
+                javafx.scene.image.Image bgImage = new javafx.scene.image.Image(
+                        getClass().getResourceAsStream("/background.png"));
+                BackgroundImage background = new BackgroundImage(
+                        bgImage,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundRepeat.NO_REPEAT,
+                        BackgroundPosition.CENTER,
+                        new BackgroundSize(100, 100, true, true, false, true)
+                );
+                rootStackPane.setBackground(new Background(background));
+            } catch (Exception e) {
+                System.err.println("Could not load background image, using default color");
+                rootStackPane.setStyle("-fx-background-color: #4a5f7f;");
+            }
+        }
+
+        if (rootStackPane != null && overlayLayer != null && !rootStackPane.getChildren().contains(overlayLayer)) {
+            if (overlayLayer.getParent() instanceof Pane) {
+                ((Pane) overlayLayer.getParent()).getChildren().remove(overlayLayer);
+            }
+            rootStackPane.getChildren().add(overlayLayer); // Add to root so it's always on top
+        }
+
+        updateHighScoreDisplay();
+
+        // Setup main menu
+        if (mainMenuPanel != null && mainMenuContainer != null && gameContainer != null) {
+            mainMenuContainer.setVisible(true);
+            gameContainer.setVisible(false);
+
+            mainMenuPanel.setStartGameAction(() -> startNewGame());
+            mainMenuPanel.setControlsAction(() -> showControlsFromMainMenu());
+            mainMenuPanel.setCustomizedAction(() -> {
+                System.out.println("Customized clicked - feature coming soon!");
+            });
+            mainMenuPanel.setQuitAction(() -> System.exit(0));
+        }
 
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
+
         gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
+                KeyCode code = keyEvent.getCode();
+
                 if (!isPause.get() && !isGameOver.get()) {
-                    if (keyEvent.getCode() == KeyCode.LEFT || keyEvent.getCode() == KeyCode.A) {
+                    // Move Left
+                    if (keyBindings.isKeyBound("MOVE_LEFT", code)) {
                         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
                         keyEvent.consume();
+                        return;
                     }
-                    if (keyEvent.getCode() == KeyCode.RIGHT || keyEvent.getCode() == KeyCode.D) {
+                    // Move Right
+                    if (keyBindings.isKeyBound("MOVE_RIGHT", code)) {
                         refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
                         keyEvent.consume();
+                        return;
                     }
-                    if (keyEvent.getCode() == KeyCode.UP || keyEvent.getCode() == KeyCode.W) {
+                    // Roatate
+                    if (keyBindings.isKeyBound("ROTATE", code)) {
                         refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
                         keyEvent.consume();
+                        return;
                     }
-                    if (keyEvent.getCode() == KeyCode.DOWN || keyEvent.getCode() == KeyCode.S) {
+                    // Rotate Left
+                    if (keyBindings.isKeyBound("ROTATE_LEFT", code)) {
+                        refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                        keyEvent.consume();
+                        return;
+                    }
+                    // Rotate Right
+                    if (keyBindings.isKeyBound("ROTATE_RIGHT", code)) {
+                        refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                        keyEvent.consume();
+                        return;
+                    }
+                    // Soft Drop
+                    if (keyBindings.isKeyBound("SOFT_DROP", code)) {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
                         keyEvent.consume();
+                        return;
                     }
-                    // Hard drop with SPACE key
-                    if (keyEvent.getCode() == KeyCode.SPACE) {
+                    // Hard Drop
+                    if (keyBindings.isKeyBound("HARD_DROP", code)) {
                         hardDrop(new MoveEvent(EventType.HARD_DROP, EventSource.USER));
                         keyEvent.consume();
+                        return;
+                    }
+                    // Hold
+                    if (keyBindings.isKeyBound("HOLD", code)) {
+                        refreshBrick(eventListener.onHoldEvent(new MoveEvent(EventType.HOLD, EventSource.USER)));
+                        keyEvent.consume();
+                        return;
                     }
                 }
-                if (keyEvent.getCode() == KeyCode.P || keyEvent.getCode() == KeyCode.ESCAPE) {
+
+                // Pause (works anytime)
+                if (keyBindings.isKeyBound("PAUSE", code)) {
                     togglePause();
                     keyEvent.consume();
+                    return;
                 }
 
-                if (keyEvent.getCode() == KeyCode.N) {
+                if (code == KeyCode.N) {
                     newGame(null);
                 }
             }
         });
-
-        // Initialize game over panel
-        if (gameOverPanel != null) {
-            gameOverPanel.setVisible(false);
-            gameOverPanel.getRetryButton().setOnAction(e -> newGame(null));
-            gameOverPanel.getQuitButton().setOnAction(e -> System.exit(0));
-            gameOverPanel.getHomeButton().setOnAction(e -> {
-                System.out.println("Home button clicked");
-                // Add navigation to main menu here
-            });
-        }
 
         pauseMenuPanel.setVisible(false);
         if (pauseContainer != null) {
@@ -189,17 +225,60 @@ public class GuiController implements Initializable {
         }
 
         pauseMenuPanel.getResumeButton().setOnAction(e -> togglePause());
-        pauseMenuPanel.getMainMenuButton().setOnAction(e -> {
-            System.out.println("Main menu clicked");
-        });
+        pauseMenuPanel.getMainMenuButton().setOnAction(e -> returnToMainMenu());
         pauseMenuPanel.getControlsButton().setOnAction(e -> showControls());
         pauseMenuPanel.getQuitButton().setOnAction(e -> System.exit(0));
 
-        if (controlsPanel != null && controlsContainer != null) {
+        if (controlsContainer != null) {
+            // Remove old panel if exists
+            controlsContainer.getChildren().clear();
+
+            // Create new customizable controls panel WITH KeyBindings
+            ControlsPanel customControlsPanel = new ControlsPanel(keyBindings);
+            controlsContainer.getChildren().add(customControlsPanel);
             controlsContainer.setVisible(false);
             controlsContainer.setMouseTransparent(true);
-            controlsPanel.getDoneButton().setOnAction(e -> hideControls());
+
+            // Setup done button action
+            customControlsPanel.getDoneButton().setOnAction(e -> hideControls());
         }
+
+        // Initialize game over panel
+        gameOverPanel = new GameOverPanel();
+        if (gameOverContainer != null) {
+            gameOverContainer.getChildren().add(gameOverPanel);
+            gameOverContainer.setVisible(false);
+            gameOverContainer.setMouseTransparent(true);
+        }
+
+        // Set up the Game Over buttons immediately
+        gameOverPanel.getRetryButton().setOnAction(e -> newGame(null));
+        gameOverPanel.getQuitButton().setOnAction(e -> System.exit(0));
+        gameOverPanel.getHomeButton().setOnAction(e -> returnToMainMenu());
+
+        // Initialize name input dialog
+        if (nameInputDialog != null && nameInputContainer != null) {
+            nameInputContainer.setVisible(false);
+            nameInputContainer.setMouseTransparent(true);
+
+            nameInputDialog.getOkButton().setOnAction(e -> {
+                String playerName = nameInputDialog.getPlayerName();
+                highScoreManager.addHighScore(playerName, currentScore);
+                nameInputContainer.setVisible(false);
+                nameInputContainer.setMouseTransparent(true);
+                updateHighScoreDisplay();
+
+                if (gameOverPanel != null) {
+                    List<HighScoreManager.HighScoreEntry> highScores = highScoreManager.getHighScores();
+                    gameOverPanel.updateHighScoresFromList(highScores, currentScore);
+                    gameOverPanel.setVisible(true);
+                }
+                updateOverlayLayer();
+            });
+
+            nameInputDialog.getNameTextField().setOnAction(e -> nameInputDialog.getOkButton().fire());
+        }
+
         if (overlayLayer != null) {
             overlayLayer.setMouseTransparent(true);
         }
@@ -222,14 +301,58 @@ public class GuiController implements Initializable {
             ghostClip.setHeight(newBounds.getHeight());
         });
 
-        // Update high score display
         updateHighScoreDisplay();
     }
 
-    public void togglePause() {
-        if (isGameOver.get()) {
-            return;
+    private void startNewGame() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisible(false);
+        if (gameContainer != null) gameContainer.setVisible(true);
+
+        if (eventListener != null) {
+            eventListener.createNewGame();
+            gamePanel.requestFocus();
+            isPause.setValue(false);
+            isGameOver.setValue(false);
         }
+    }
+
+    private void showControlsFromMainMenu() {
+        if (mainMenuContainer != null) mainMenuContainer.setVisible(false);
+
+        if (gameContainer != null) gameContainer.setVisible(false);
+
+        if (controlsContainer != null) {
+            controlsContainer.setVisible(true);
+            controlsContainer.setMouseTransparent(false);
+
+            if (!controlsContainer.getChildren().isEmpty()) {
+                ControlsPanel panel = (ControlsPanel) controlsContainer.getChildren().get(0);
+                panel.getDoneButton().setOnAction(e -> {
+                    controlsContainer.setVisible(false);
+                    controlsContainer.setMouseTransparent(true);
+                    updateOverlayLayer(); // Reset mouse transparency
+
+                    if (gameContainer != null) gameContainer.setVisible(false);
+                    if (mainMenuContainer != null) mainMenuContainer.setVisible(true);
+                });
+                panel.requestFocus();
+            }
+        }
+
+        updateOverlayLayer();
+    }
+
+    public void returnToMainMenu() {
+        if (timeLine != null) timeLine.stop();
+        if (gameOverPanel != null) gameOverPanel.setVisible(false);
+        if (pauseContainer != null) pauseContainer.setVisible(false);
+        if (nameInputContainer != null) nameInputContainer.setVisible(false);
+        if (gameContainer != null) gameContainer.setVisible(false);
+        if (mainMenuContainer != null) mainMenuContainer.setVisible(true);
+    }
+
+    public void togglePause() {
+        if (isGameOver.get()) return;
 
         isPause.set(!isPause.get());
         pauseMenuPanel.setVisible(isPause.get());
@@ -237,23 +360,18 @@ public class GuiController implements Initializable {
             pauseContainer.setVisible(isPause.get());
             pauseContainer.setMouseTransparent(!isPause.get());
         }
-        if (!isPause.get()) {
-            hideControls();
-        }
+        if (!isPause.get()) hideControls();
         updateOverlayLayer();
 
-        if (isPause.get()) {
-            timeLine.pause();
-        } else {
+        if (isPause.get()) timeLine.pause();
+        else {
             timeLine.play();
             gamePanel.requestFocus();
         }
     }
 
     public void updateNextPieces(List<int[][]> nextShapes) {
-        if (nextPiecesContainer == null) {
-            return;
-        }
+        if (nextPiecesContainer == null) return;
         nextPiecesContainer.getChildren().clear();
 
         for (int[][] shape : nextShapes) {
@@ -280,7 +398,6 @@ public class GuiController implements Initializable {
                     }
                 }
             }
-
             nextPiecesContainer.getChildren().add(nextGrid);
         }
     }
@@ -288,10 +405,7 @@ public class GuiController implements Initializable {
     public void updateHoldPiece(int[][] holdShape) {
         if (holdPieceGrid == null) return;
         holdPieceGrid.getChildren().clear();
-
-        if (holdShape == null) {
-            return;
-        }
+        if (holdShape == null) return;
 
         int rows = holdShape.length;
         int cols = holdShape[0].length;
@@ -310,13 +424,21 @@ public class GuiController implements Initializable {
     }
 
     private void showControls() {
-        if (controlsContainer != null && controlsPanel != null) {
+        if (controlsContainer != null) {
             controlsContainer.setVisible(true);
             controlsContainer.setMouseTransparent(false);
             pauseMenuPanel.setVisible(false);
             if (pauseContainer != null) {
                 pauseContainer.setVisible(false);
                 pauseContainer.setMouseTransparent(true);
+            }
+
+            // Get the controls panel and setup its done button
+            if (!controlsContainer.getChildren().isEmpty()) {
+                ControlsPanel panel = (ControlsPanel) controlsContainer.getChildren().get(0);
+                panel.getDoneButton().setOnAction(e -> hideControls());
+                // Focus the panel so it can capture key presses for rebinding
+                panel.requestFocus();
             }
         }
         updateOverlayLayer();
@@ -335,6 +457,7 @@ public class GuiController implements Initializable {
             }
         }
         updateOverlayLayer();
+        gamePanel.requestFocus();
     }
 
     private void updateOverlayLayer() {
@@ -342,7 +465,9 @@ public class GuiController implements Initializable {
             boolean overlaysVisible =
                     (pauseContainer != null && pauseContainer.isVisible()) ||
                             (controlsContainer != null && controlsContainer.isVisible()) ||
-                            (gameOverPanel != null && gameOverPanel.isVisible());
+                            (gameOverContainer != null && gameOverContainer.isVisible()) || // Add this line
+                            (nameInputContainer != null && nameInputContainer.isVisible());
+
             overlayLayer.setMouseTransparent(!overlaysVisible);
         }
     }
@@ -377,7 +502,6 @@ public class GuiController implements Initializable {
 
     private void rebuildBrickRectangles(int[][] brickShape) {
         brickPanel.getChildren().clear();
-
         rectangles = new Rectangle[brickShape.length][brickShape[0].length];
         for (int i = 0; i < brickShape.length; i++) {
             for (int j = 0; j < brickShape[i].length; j++) {
@@ -413,6 +537,11 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData viewData) {
+
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
         for (int i = 0; i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
@@ -469,9 +598,7 @@ public class GuiController implements Initializable {
         ghostPanel.setLayoutY(y);
     }
 
-
     private void refreshBrick(ViewData brick) {
-
         if (rectangles == null ||
                 rectangles.length != brick.getBrickData().length ||
                 rectangles[0].length != brick.getBrickData()[0].length) {
@@ -590,43 +717,47 @@ public class GuiController implements Initializable {
     public void gameOver() {
         timeLine.stop();
         isGameOver.setValue(true);
+        boolean isHighScore = highScoreManager.isHighScore(currentScore);
 
-        if (gameOverPanel != null) {
-            // Get high scores from manager
-            List<HighScoreManager.HighScoreEntry> highScores = highScoreManager.getHighScores();
-            int[] topScores = new int[5];
+        if (isHighScore && nameInputDialog != null && nameInputContainer != null) {
+            if (gameOverContainer != null) gameOverContainer.setVisible(false); // Hide game over if entering name
 
-            for (int i = 0; i < Math.min(5, highScores.size()); i++) {
-                topScores[i] = highScores.get(i).getScore();
+            nameInputDialog.setScore(currentScore);
+            nameInputDialog.reset();
+            nameInputContainer.setVisible(true);
+            nameInputContainer.setMouseTransparent(false);
+            nameInputDialog.getNameTextField().requestFocus();
+        } else {
+            // Hide name input
+            if (nameInputContainer != null) {
+                nameInputContainer.setVisible(false);
+                nameInputContainer.setMouseTransparent(true);
             }
 
-            // Add current score if it's a high score
-            String playerName = "";
-            if (highScoreManager.isHighScore(currentScore)) {
-                playerName = "YOU";
-                highScoreManager.addHighScore(playerName, currentScore);
+            // SHOW GAME OVER
+            if (gameOverPanel != null && gameOverContainer != null) {
+                displayHighScores("", currentScore);
 
-                // Refresh high scores after adding
-                highScores = highScoreManager.getHighScores();
-                for (int i = 0; i < Math.min(5, highScores.size()); i++) {
-                    topScores[i] = highScores.get(i).getScore();
-                }
+                // Make the container visible and interactive
+                gameOverContainer.setVisible(true);
+                gameOverContainer.setMouseTransparent(false);
             }
-
-            gameOverPanel.updateHighScores(playerName, currentScore, topScores);
-            gameOverPanel.setVisible(true);
-
-            // Update high score display
-            updateHighScoreDisplay();
         }
-
         updateOverlayLayer();
+    }
+
+    private void displayHighScores(String playerName, int playerScore) {
+        if (gameOverPanel == null) return;
+        List<HighScoreManager.HighScoreEntry> highScores = highScoreManager.getHighScores();
+        gameOverPanel.updateHighScoresFromList(highScores, playerScore);
     }
 
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
-        if (gameOverPanel != null) {
-            gameOverPanel.setVisible(false);
+        if (gameOverPanel != null) gameOverPanel.setVisible(false);
+        if (nameInputContainer != null) {
+            nameInputContainer.setVisible(false);
+            nameInputContainer.setMouseTransparent(true);
         }
         pauseMenuPanel.setVisible(false);
         eventListener.createNewGame();

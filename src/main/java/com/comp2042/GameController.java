@@ -12,6 +12,7 @@ public class GameController implements InputEventListener {
         viewGuiController.setEventListener(this);
         viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
         viewGuiController.bindScore(board.getScore().scoreProperty());
+        viewGuiController.updateHoldPiece(null); // Initialize empty hold
     }
 
     private void refreshNextPiece() {
@@ -89,8 +90,19 @@ public class GameController implements InputEventListener {
     }
 
     @Override
+    public ViewData onHoldEvent(MoveEvent event) {
+        if (board.holdPiece()) {
+            viewGuiController.updateHoldPiece(board.getHoldPieceShape());
+            refreshNextPiece();
+        }
+        return board.getViewData();
+    }
+
+    @Override
     public void createNewGame() {
         board.newGame();
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
+        viewGuiController.updateHoldPiece(null);
+        refreshNextPiece();
     }
 }

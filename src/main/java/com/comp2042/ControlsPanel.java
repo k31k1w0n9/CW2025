@@ -4,82 +4,130 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
+
 
 public class ControlsPanel extends VBox {
 
     private Button doneButton;
+    private KeyBindings keyBindings;
+    private String currentlyRebinding = null;
+    private Button currentRebindButton = null;
 
-    public ControlsPanel() {
-        setAlignment(Pos.CENTER);
-        setSpacing(15);
-        setStyle("-fx-background-color: #3d4f6d; " +
-                "-fx-border-color: white; " +
-                "-fx-border-width: 3; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10; " +
-                "-fx-padding: 30;");
-        setPrefSize(600, 550);
-        setMaxSize(600, 550);
-        setMinSize(600, 550);
+    public ControlsPanel(KeyBindings keyBindings) {
+            this.keyBindings = keyBindings;
 
-        // Title with colorful letters
-        HBox titleBox = createColorfulTitle();
+            setAlignment(Pos.CENTER);
+            setSpacing(15);
+            setStyle("-fx-background-color: #3d4f6d; " +
+                    "-fx-border-color: white; " +
+                    "-fx-border-width: 3; " +
+                    "-fx-border-radius: 10; " +
+                    "-fx-background-radius: 10; " +
+                    "-fx-padding: 30;");
 
-        // Control mappings
-        VBox controlsBox = new VBox(8);
-        controlsBox.setAlignment(Pos.CENTER);
+            setPrefSize(600, 660);
+            setMaxSize(600, 660);
+            setMinSize(600, 660);
 
-        controlsBox.getChildren().addAll(
-                createControlRow("Shift Left", "← / A"),
-                createControlRow("Shift Right", "→ / D"),
-                createControlRow("Soft Drop", "↓ / S"),
-                createControlRow("Hard Drop", "↑ / W / Spacebar"),
-                createControlRow("Rotate Left", "Z / J"),
-                createControlRow("Rotate Right", "X / K"),
-                createControlRow("Hold", "C / L"),
-                createControlRow("Pause", "Esc"),
-                createControlRow("Fullscreen Toggle", "F")
-        );
+            // Title with colorful letters
+            HBox titleBox = createColorfulTitle();
 
-        // Back button
-        doneButton = new Button("◄ Back ►");
-        doneButton.setPrefSize(200, 45);
-        doneButton.setStyle("-fx-background-color: rgba(90, 95, 127, 0.8); " +
-                "-fx-text-fill: white; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 18px; " +
-                "-fx-border-color: white; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 8; " +
-                "-fx-background-radius: 8; " +
-                "-fx-cursor: hand;");
-        doneButton.setOnMouseEntered(e -> doneButton.setStyle(
-                "-fx-background-color: rgba(120, 125, 167, 1.0); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-font-weight: bold; " +
-                        "-fx-font-size: 18px; " +
-                        "-fx-border-color: white; " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 8; " +
-                        "-fx-background-radius: 8; " +
-                        "-fx-cursor: hand;"));
-        doneButton.setOnMouseExited(e -> doneButton.setStyle(
-                "-fx-background-color: rgba(90, 95, 127, 0.8); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-font-weight: bold; " +
-                        "-fx-font-size: 18px; " +
-                        "-fx-border-color: white; " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 8; " +
-                        "-fx-background-radius: 8; " +
-                        "-fx-cursor: hand;"));
+            // Control mappings
+            VBox controlsBox = new VBox(5);
+            controlsBox.setAlignment(Pos.CENTER);
 
-        getChildren().addAll(titleBox, controlsBox, doneButton);
-    }
+            controlsBox.getChildren().addAll(
+                    createControlRow("Shift Left", "MOVE_LEFT"),
+                    createControlRow("Shift Right", "MOVE_RIGHT"),
+                    createControlRow("Soft Drop", "SOFT_DROP"),
+                    createControlRow("Hard Drop", "HARD_DROP"),
+                    createControlRow("Rotate", "ROTATE"),
+                    createControlRow("Rotate Left", "ROTATE_LEFT"),
+                    createControlRow("Rotate Right", "ROTATE_RIGHT"),
+                    createControlRow("Hold", "HOLD"),
+                    createControlRow("Pause", "PAUSE")
+            );
+
+            // Spacer to push button down
+            Region spacer = new Region();
+            VBox.setVgrow(spacer, Priority.ALWAYS);
+
+            // Back button container with negative margin to position at border
+            VBox buttonContainer = new VBox();
+            buttonContainer.setAlignment(Pos.CENTER);
+           // buttonContainer.setTranslateY(5);
+
+            doneButton = new Button("Back");
+            doneButton.setPrefSize(200, 45);
+            doneButton.setMinSize(200, 45);
+            doneButton.setMaxSize(200, 45);
+            doneButton.setStyle("-fx-background-color: rgba(90, 95, 127, 0.8); " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-weight: bold; " +
+                    "-fx-font-size: 18px; " +
+                    "-fx-border-color: white; " +
+                    "-fx-border-width: 2; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-background-radius: 8; " +
+                    "-fx-cursor: hand;");
+
+            doneButton.setOnMouseEntered(e -> doneButton.setStyle(
+                    "-fx-background-color: rgba(120, 125, 167, 1.0); " +
+                            "-fx-text-fill: white; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-font-size: 18px; " +
+                            "-fx-border-color: white; " +
+                            "-fx-border-width: 2; " +
+                            "-fx-border-radius: 8; " +
+                            "-fx-background-radius: 8; " +
+                            "-fx-cursor: hand;"));
+            doneButton.setOnMouseExited(e -> doneButton.setStyle(
+                    "-fx-background-color: rgba(90, 95, 127, 0.8); " +
+                            "-fx-text-fill: white; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-font-size: 18px; " +
+                            "-fx-border-color: white; " +
+                            "-fx-border-width: 2; " +
+                            "-fx-border-radius: 8; " +
+                            "-fx-background-radius: 8; " +
+                            "-fx-cursor: hand;"));
+
+            buttonContainer.getChildren().add(doneButton);
+            getChildren().addAll(titleBox, controlsBox, spacer, buttonContainer);
+
+            // Set up key listener for rebinding
+            setFocusTraversable(true);
+            setOnKeyPressed(event -> {
+                if (currentlyRebinding != null && currentRebindButton != null) {
+                    KeyCode newKey = event.getCode();
+
+                    // Don't allow Escape to be bound (reserved for cancel)
+                    if (newKey == KeyCode.ESCAPE) {
+                        cancelRebind();
+                        return;
+                    }
+
+                    // Update the binding
+                    keyBindings.rebindKey(currentlyRebinding, newKey);
+
+                    // Update button text
+                    currentRebindButton.setText(getKeyDisplayName(newKey));
+                    currentRebindButton.setStyle(getKeyButtonStyle());
+
+                    // Clear rebinding state
+                    currentlyRebinding = null;
+                    currentRebindButton = null;
+
+                    event.consume();
+                }
+            });
+        }
 
     private HBox createColorfulTitle() {
         HBox titleBox = new HBox(2);
@@ -102,7 +150,7 @@ public class ControlsPanel extends VBox {
         return titleBox;
     }
 
-    private HBox createControlRow(String action, String keys) {
+    private HBox createControlRow(String action, String bindingKey) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER);
         row.setPrefWidth(550);
@@ -116,37 +164,129 @@ public class ControlsPanel extends VBox {
                 "-fx-alignment: center-left;");
 
         // Separator line
-        Label separator = new Label("─".repeat(15));
+        Label separator = new Label("─".repeat(8));
         separator.setStyle("-fx-text-fill: rgba(255, 255, 255, 0.3); " +
                 "-fx-font-size: 12px;");
 
-        Label keysLabel = new Label(keys);
-        keysLabel.setStyle("-fx-font-size: 16px; " +
+        // Key button (clickable to rebind)
+        Button keyButton = new Button(getCurrentKeysDisplay(bindingKey));
+        keyButton.setPrefWidth(200);
+        keyButton.setMinWidth(200);
+        keyButton.setStyle(getKeyButtonStyle());
+
+        keyButton.setOnMouseEntered(e -> {
+            if (currentlyRebinding == null) {
+                keyButton.setStyle(getKeyButtonHoverStyle());
+            }
+        });
+
+        keyButton.setOnMouseExited(e -> {
+            if (currentlyRebinding == null || currentRebindButton != keyButton) {
+                keyButton.setStyle(getKeyButtonStyle());
+            }
+        });
+
+        keyButton.setOnAction(e -> {
+            startRebinding(bindingKey, keyButton);
+        });
+
+        row.getChildren().addAll(actionLabel, separator, keyButton);
+        return row;
+    }
+
+    private String getCurrentKeysDisplay(String bindingKey) {
+        java.util.List<KeyCode> keys = keyBindings.getKeysForAction(bindingKey);
+        if (keys.isEmpty()) {
+            return "Not bound";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < keys.size(); i++) {
+            if (i > 0) sb.append(" / ");
+            sb.append(getKeyDisplayName(keys.get(i)));
+        }
+        return sb.toString();
+    }
+
+    private String getKeyDisplayName(KeyCode key) {
+        return switch (key) {
+            case UP -> "↑";
+            case DOWN -> "↓";
+            case LEFT -> "←";
+            case RIGHT -> "→";
+            case SPACE -> "Spacebar";
+            default -> key.getName();
+        };
+    }
+
+    private void startRebinding(String bindingKey, Button button) {
+        // Cancel any previous rebinding
+        if (currentRebindButton != null && currentRebindButton != button) {
+            cancelRebind();
+        }
+
+        currentlyRebinding = bindingKey;
+        currentRebindButton = button;
+
+        button.setText("Press any key...");
+        button.setStyle(getRebindingStyle());
+
+        // Request focus to capture key presses
+        requestFocus();
+    }
+
+    private void cancelRebind() {
+        if (currentRebindButton != null) {
+            currentRebindButton.setText(getCurrentKeysDisplay(currentlyRebinding));
+            currentRebindButton.setStyle(getKeyButtonStyle());
+        }
+        currentlyRebinding = null;
+        currentRebindButton = null;
+    }
+
+    private String getKeyButtonStyle() {
+        return "-fx-font-size: 16px; " +
                 "-fx-text-fill: white; " +
                 "-fx-font-weight: bold; " +
                 "-fx-background-color: rgba(0, 0, 0, 0.3); " +
                 "-fx-padding: 5 15; " +
                 "-fx-border-color: rgba(255, 255, 255, 0.5); " +
-                "-fx-border-width: 1; " +
+                "-fx-border-width: 2; " +  // Changed from 1 to 2
                 "-fx-border-radius: 5; " +
                 "-fx-background-radius: 5; " +
-                "-fx-min-width: 200; " +
-                "-fx-alignment: center;");
+                "-fx-cursor: hand; " +
+                "-fx-alignment: center;";
+    }
 
-        row.getChildren().addAll(actionLabel, separator, keysLabel);
-        return row;
+    private String getKeyButtonHoverStyle() {
+        return "-fx-font-size: 16px; " +
+                "-fx-text-fill: #FFD75C; " +
+                "-fx-font-weight: bold; " +
+                "-fx-background-color: rgba(0, 0, 0, 0.5); " +
+                "-fx-padding: 5 15; " +
+                "-fx-border-color: rgba(255, 215, 0, 0.8); " +
+                "-fx-border-width: 2; " +  // Keep at 2
+                "-fx-border-radius: 5; " +
+                "-fx-background-radius: 5; " +
+                "-fx-cursor: hand; " +
+                "-fx-alignment: center;";
+    }
+
+    private String getRebindingStyle() {
+        return "-fx-font-size: 16px; " +
+                "-fx-text-fill: #FF5C7C; " +
+                "-fx-font-weight: bold; " +
+                "-fx-background-color: rgba(255, 92, 124, 0.2); " +
+                "-fx-padding: 5 15; " +
+                "-fx-border-color: #FF5C7C; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 5; " +
+                "-fx-background-radius: 5; " +
+                "-fx-cursor: wait; " +
+                "-fx-alignment: center;";
     }
 
     public Button getDoneButton() {
         return doneButton;
-    }
-
-    // Remove unused methods
-    public Button getPrevButton() {
-        return null; // Not used anymore
-    }
-
-    public Button getNextButton() {
-        return null; // Not used anymore
     }
 }

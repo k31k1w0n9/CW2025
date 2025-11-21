@@ -20,10 +20,14 @@ public class SimpleBoard implements Board {
     private final Score score;
     private final List<Brick> nextPieceQueue = new ArrayList<>();
 
+    // Hold piece functionality
+    private Brick holdPiece = null;
+    private boolean canHold = true;
+
     public SimpleBoard(int width, int height) {
-        this.width = width;   // 20 (rows)
-        this.height = height; // 10 (cols)
-        currentGameMatrix = new int[width][height]; // [20][10]
+        this.width = width;
+        this.height = height;
+        currentGameMatrix = new int[width][height];
         brickGenerator = new RandomBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
@@ -103,7 +107,38 @@ public class SimpleBoard implements Board {
         refillNextPieceQueue();
 
         currentOffset = new Point(3, 0);
+        canHold = true;
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
+    }
+
+    @Override
+    public boolean holdPiece() {
+        if (!canHold) {
+            return false;
+        }
+
+        Brick currentBrick = brickRotator.getBrick();
+
+        if (holdPiece == null) {
+            holdPiece = currentBrick;
+            createNewBrick();
+        } else {
+            Brick temp = holdPiece;
+            holdPiece = currentBrick;
+            brickRotator.setBrick(temp);
+            currentOffset = new Point(3, 0);
+        }
+
+        canHold = false;
+        return true;
+    }
+
+    @Override
+    public int[][] getHoldPieceShape() {
+        if (holdPiece == null) {
+            return null;
+        }
+        return holdPiece.getShapeMatrix().get(0);
     }
 
     @Override
@@ -155,13 +190,10 @@ public class SimpleBoard implements Board {
         int dropDistance = 0;
         int currentX = (int) currentOffset.getX();
         int currentY = (int) currentOffset.getY();
-        int[][] currentShape = brickRotator.getCurrentShape();
 
-        // Calculate how far the piece will drop
         int ghostY = getGhostYPosition();
         dropDistance = ghostY - currentY;
 
-        // Move the piece to the ghost position
         currentOffset.setLocation(currentX, ghostY);
 
         return dropDistance;
@@ -184,6 +216,8 @@ public class SimpleBoard implements Board {
         currentGameMatrix = new int[width][height];
         score.reset();
         nextPieceQueue.clear();
+        holdPiece = null;
+        canHold = true;
         refillNextPieceQueue();
         createNewBrick();
     }

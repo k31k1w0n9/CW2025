@@ -5,5 +5,6 @@ public enum EventType {
     RIGHT,
     DOWN,
     ROTATE,
-    HARD_DROP
+    HARD_DROP,
+    HOLD
 }

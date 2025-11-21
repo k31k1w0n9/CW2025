@@ -29,4 +29,8 @@ public interface Board {
     void newGame();
 
     int hardDrop();
+
+    boolean holdPiece();
+
+    int[][] getHoldPieceShape();
 }
