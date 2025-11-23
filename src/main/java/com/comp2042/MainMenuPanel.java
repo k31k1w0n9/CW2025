@@ -1,11 +1,21 @@
 package com.comp2042;
 
-import javafx.animation.*;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -30,6 +40,7 @@ public class MainMenuPanel extends StackPane {
                     getClass().getResourceAsStream("/BoutiqueBitmap9x9_Bold_1.9.ttf"), 24);
         } catch (Exception e) {
             System.err.println("Could not load custom font, using default");
+            e.printStackTrace();
             buttonFont = Font.font("Consolas", 24);
             buttonFontBold = Font.font("Consolas", 24);
         }
@@ -42,8 +53,7 @@ public class MainMenuPanel extends StackPane {
                     BackgroundRepeat.NO_REPEAT,
                     BackgroundRepeat.NO_REPEAT,
                     BackgroundPosition.CENTER,
-                    new BackgroundSize(100, 100, true, true, false, true)
-            );
+                    new BackgroundSize(100, 100, true, true, false, true));
             setBackground(new Background(background));
         } catch (Exception e) {
             System.err.println("Could not load background image");
@@ -79,7 +89,7 @@ public class MainMenuPanel extends StackPane {
         // Menu buttons with hover effect
         startButton = new MenuButton("Start Game");
         customizedButton = new MenuButton("Customized");
-        controlsButton = new MenuButton("Controls");
+        controlsButton = new MenuButton("Options");
         quitButton = new MenuButton("Quit Game");
 
         menuContainer.getChildren().addAll(
@@ -87,8 +97,7 @@ public class MainMenuPanel extends StackPane {
                 startButton,
                 customizedButton,
                 controlsButton,
-                quitButton
-        );
+                quitButton);
 
         getChildren().add(menuContainer);
     }
@@ -180,6 +189,12 @@ public class MainMenuPanel extends StackPane {
                         "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
                         "-fx-min-width: 300; " +
                         "-fx-alignment: center;");
+                leftArrow.setStyle("-fx-text-fill: #FFD75C; " +
+                        "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
+                        "-fx-alignment: center;");
+                rightArrow.setStyle("-fx-text-fill: #FFD75C; " +
+                        "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
+                        "-fx-alignment: center;");
 
                 ParallelTransition parallel = new ParallelTransition(leftFade, rightFade, scale);
                 parallel.play();
@@ -198,6 +213,12 @@ public class MainMenuPanel extends StackPane {
                 buttonText.setStyle("-fx-text-fill: white; " +
                         "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
                         "-fx-min-width: 300; " +
+                        "-fx-alignment: center;");
+                leftArrow.setStyle("-fx-text-fill: white; " +
+                        "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
+                        "-fx-alignment: center;");
+                rightArrow.setStyle("-fx-text-fill: white; " +
+                        "-fx-effect: dropshadow(gaussian, #DD0584, 4, 0, 0, 4); " +
                         "-fx-alignment: center;");
 
                 ParallelTransition parallel = new ParallelTransition(leftFade, rightFade, scale);

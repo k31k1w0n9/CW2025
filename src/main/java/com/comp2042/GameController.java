@@ -2,17 +2,17 @@ package com.comp2042;
 
 public class GameController implements InputEventListener {
 
-    private Board board = new SimpleBoard(20, 10);
+    private Board board = new SimpleBoard(22, 10);
 
     private final GuiController viewGuiController;
 
     public GameController(GuiController c) {
         viewGuiController = c;
-        board.createNewBrick();
         viewGuiController.setEventListener(this);
         viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
         viewGuiController.bindScore(board.getScore().scoreProperty());
-        viewGuiController.updateHoldPiece(null); // Initialize empty hold
+        viewGuiController.updateHoldPiece(null);
+        refreshNextPiece(); // Initialize the next piece display
     }
 
     private void refreshNextPiece() {
@@ -29,7 +29,10 @@ public class GameController implements InputEventListener {
             if (clearRow.getLinesRemoved() > 0) {
                 board.getScore().add(clearRow.getScoreBonus());
             }
-            if (board.createNewBrick()) {
+
+            // FIXED: Check if new brick creation causes game over
+            boolean gameOver = board.createNewBrick();
+            if (gameOver) {
                 viewGuiController.gameOver();
             } else {
                 refreshNextPiece();
@@ -60,7 +63,9 @@ public class GameController implements InputEventListener {
             board.getScore().add(clearRow.getScoreBonus());
         }
 
-        if (board.createNewBrick()) {
+        // Check if new brick creation causes game over
+        boolean gameOver = board.createNewBrick();
+        if (gameOver) {
             viewGuiController.gameOver();
         } else {
             refreshNextPiece();
@@ -104,5 +109,7 @@ public class GameController implements InputEventListener {
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
         viewGuiController.updateHoldPiece(null);
         refreshNextPiece();
+        // FIXED: Refresh the falling brick display so it's visible in the new game
+        viewGuiController.refreshBrick(board.getViewData());
     }
 }

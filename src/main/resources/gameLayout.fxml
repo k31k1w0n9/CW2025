@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.comp2042.GameOverPanel?>
 <?import com.comp2042.PauseMenuPanel?>
 <?import com.comp2042.NameInputDialog?>
 <?import com.comp2042.MainMenuPanel?>
@@ -9,149 +8,188 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.geometry.Insets?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.comp2042.GuiController"
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.comp2042.GuiController"
            fx:id="rootStackPane"
            alignment="CENTER"
-           stylesheets="@window_style.css">
+           stylesheets="@window_style.css"
+           styleClass="root"
+           minWidth="1000"
+           minHeight="700"
+           prefWidth="1200"
+           prefHeight="800">
 
-    <!-- Main Menu (shows first) -->
+    <!-- MAIN MENU -->
     <StackPane fx:id="mainMenuContainer" alignment="CENTER" visible="true">
         <MainMenuPanel fx:id="mainMenuPanel"/>
     </StackPane>
 
-    <!-- Game Screen (hidden initially) -->
+    <!-- GAME SCREEN -->
     <StackPane fx:id="gameContainer" alignment="CENTER" visible="false">
-        <HBox spacing="30" alignment="CENTER" style="-fx-padding: 40;">
 
-            <VBox spacing="25" alignment="CENTER" prefWidth="120">
-                <VBox spacing="8" alignment="CENTER">
-                    <Label text="Hold" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: #1a2332; -fx-padding: 5 20;"/>
+        <!-- Main Layout -->
+        <HBox fx:id="gameHBox" alignment="CENTER" spacing="40">
+            <padding>
+                <Insets top="40" right="60" bottom="40" left="60"/>
+            </padding>
 
-                    <GridPane fx:id="holdPieceGrid" hgap="0" vgap="0"
-                              minWidth="100" minHeight="80"
-                              maxWidth="100" maxHeight="80"
-                              prefWidth="100" prefHeight="80"
-                              alignment="CENTER"
-                              style="-fx-background-color: #1a2332; -fx-border-color: #4a5f7f; -fx-border-width: 2;"/>
+            <!-- LEFT COLUMN -->
+            <VBox fx:id="leftColumn" spacing="18" alignment="TOP_CENTER"
+                  minWidth="140" prefWidth="140" maxWidth="140">
+
+                <!-- HOLD PIECE BOX -->
+                <VBox styleClass="info-box-container">
+                    <HBox styleClass="info-header">
+                        <Label text="Hold" styleClass="info-header-text"/>
+                    </HBox>
+                    <StackPane styleClass="info-content, info-content-hold">
+                        <GridPane fx:id="holdPieceGrid" alignment="CENTER"
+                                  hgap="1" vgap="1"/>
+                    </StackPane>
                 </VBox>
 
-                <Region prefHeight="20"/>
+                <!-- SPACER -->
+                <Region VBox.vgrow="ALWAYS" minHeight="20"/>
 
-                <VBox spacing="5"
-                      alignment="CENTER"
-                      style="-fx-background-color: #1a2332;
-                      -fx-border-color: #4a5f7f; -fx-border-width: 2; -fx-padding: 10;">
-                    <Label text="Highscore" style="-fx-font-size: 12;
-                                                  -fx-font-weight: bold; -fx-text-fill: white;"/>
-                    <Label fx:id="highScoreLabel" text="0" style="-fx-font-size: 18;
-                                                               -fx-text-fill: white;"/>
-                </VBox>
+                <!-- STATS GROUP -->
+                <VBox spacing="15" alignment="CENTER">
+                    <VBox styleClass="info-box-container">
+                        <HBox styleClass="info-header">
+                            <Label text="High Score" styleClass="info-header-text"/>
+                        </HBox>
+                        <StackPane styleClass="info-content">
+                            <Label fx:id="highScoreLabel" text="0"
+                                   styleClass="info-value-text"/>
+                        </StackPane>
+                    </VBox>
 
-                <VBox spacing="5" alignment="CENTER"
-                      style="-fx-background-color: #1a2332;
-                             -fx-border-color: #4a5f7f; -fx-border-width: 2; -fx-padding: 10;">
-                    <Label text="Level" style="-fx-font-size: 12;
-                                              -fx-font-weight: bold; -fx-text-fill: white;"/>
-                    <Label fx:id="levelLabel" text="1" style="-fx-font-size: 18;
-                                                           -fx-text-fill: white;"/>
-                </VBox>
+                    <VBox styleClass="info-box-container">
+                        <HBox styleClass="info-header">
+                            <Label text="Level" styleClass="info-header-text"/>
+                        </HBox>
+                        <StackPane styleClass="info-content">
+                            <Label fx:id="levelLabel" text="1"
+                                   styleClass="info-value-text"/>
+                        </StackPane>
+                    </VBox>
 
-                <VBox spacing="5" alignment="CENTER"
-                      style="-fx-background-color: #1a2332;
-                             -fx-border-color: #4a5f7f; -fx-border-width: 2; -fx-padding: 10;">
-                    <Label text="Score" style="-fx-font-size: 12;
-                                              -fx-font-weight: bold; -fx-text-fill: white;"/>
-                    <Label fx:id="scoreLabel" text="0" style="-fx-font-size: 18;
-                                                           -fx-text-fill: white;"/>
-                </VBox>
+                    <VBox styleClass="info-box-container">
+                        <HBox styleClass="info-header">
+                            <Label text="Score" styleClass="info-header-text"/>
+                        </HBox>
+                        <StackPane styleClass="info-content">
+                            <Label fx:id="scoreLabel" text="0"
+                                   styleClass="info-value-text"/>
+                        </StackPane>
+                    </VBox>
 
-                <VBox spacing="5" alignment="CENTER"
-                      style="-fx-background-color: #1a2332;
-                             -fx-border-color: #4a5f7f; -fx-border-width: 2; -fx-padding: 10;">
-                    <Label text="Lines" style="-fx-font-size: 12;
-                                              -fx-font-weight: bold; -fx-text-fill: white;"/>
-                    <Label fx:id="linesLabel" text="0" style="-fx-font-size: 18;
-                                                           -fx-text-fill: white;"/>
+                    <VBox styleClass="info-box-container">
+                        <HBox styleClass="info-header">
+                            <Label text="Lines" styleClass="info-header-text"/>
+                        </HBox>
+                        <StackPane styleClass="info-content">
+                            <Label fx:id="linesLabel" text="0"
+                                   styleClass="info-value-text"/>
+                        </StackPane>
+                    </VBox>
                 </VBox>
             </VBox>
 
-            <StackPane alignment="CENTER">
-                <Pane fx:id="rootPane" minWidth="200" minHeight="400" maxWidth="200" maxHeight="400">
-                    <Rectangle layoutX="0" layoutY="0" width="200" height="400"
-                               fill="transparent"
-                               stroke="#5a9fd4"
-                               strokeWidth="4"
-                               mouseTransparent="true"/>
+            <!-- GAME BOARD - Sizes set dynamically by Java -->
+            <StackPane fx:id="boardContainer" styleClass="game-board-container" alignment="CENTER">
+                <Pane fx:id="rootPane"
+                      style="-fx-background-color: #0d1421;">
 
-                    <Rectangle layoutX="0" layoutY="0" width="200" height="400"
-                               fill="#3d4f6d"
-                               mouseTransparent="true"/>
+                    <!-- Blue Border -->
+                    <Rectangle fx:id="boardBorder" layoutX="0" layoutY="0"
+                               strokeType="OUTSIDE"
+                               styleClass="game-border-rect"/>
 
-                    <GridPane
-                            fx:id="gamePanel"
-                            hgap="0"
-                            vgap="0"
-                            layoutX="0"
-                            layoutY="0"
-                            prefWidth="200"
-                            prefHeight="400"
-                            gridLinesVisible="true"
-                            alignment="TOP_LEFT"
-                            style=" -fx-background-color: #0d1b2a;"/>
+                    <!-- Dark Background -->
+                    <Rectangle fx:id="boardBackground" layoutX="0" layoutY="0"
+                               fill="#0d1421" mouseTransparent="true"/>
 
-                    <Pane fx:id="ghostPanel"
-                          layoutX="0"
-                          layoutY="0"
-                          prefWidth="200" prefHeight="400"
-                          maxWidth="200" maxHeight="400"
+                    <!-- Grid -->
+                    <Pane fx:id="gamePanel"
+                          layoutX="0" layoutY="0"
+                          styleClass="game-grid"/>
+
+                    <!-- Ghost Layer -->
+                    <Pane fx:id="ghostPanel" layoutX="0" layoutY="0"
                           pickOnBounds="false" mouseTransparent="true"/>
-                    <Pane fx:id="brickPanel"
-                          layoutX="0"
-                          layoutY="0"
-                          prefWidth="200" prefHeight="400"
-                          maxWidth="200" maxHeight="400"
+
+                    <!-- Falling Piece Layer -->
+                    <Pane fx:id="brickPanel" layoutX="0" layoutY="0"
                           pickOnBounds="false"/>
 
-                    <StackPane layoutX="0" layoutY="0" prefWidth="200" prefHeight="400" alignment="CENTER" pickOnBounds="false">
+                    <!-- Notifications -->
+                    <Pane fx:id="notificationLayer" layoutX="0" layoutY="0"
+                          pickOnBounds="false">
                         <Group fx:id="groupNotification" mouseTransparent="true"/>
-                    </StackPane>
+                    </Pane>
                 </Pane>
             </StackPane>
 
-            <VBox spacing="15" alignment="CENTER" prefWidth="120">
-                <VBox spacing="8" alignment="CENTER">
-                    <Label text="Next" style="-fx-font-size: 14;
-                                              -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: #1a2332; -fx-padding: 5 20;"/>
-                    <VBox fx:id="nextPiecesContainer" spacing="12" alignment="CENTER">
-                    </VBox>
+            <!-- RIGHT COLUMN -->
+            <VBox fx:id="rightColumn" spacing="15" alignment="TOP_CENTER"
+                  minWidth="140" prefWidth="140" maxWidth="140">
+
+                <!-- NEXT PIECES BOX -->
+                <VBox styleClass="info-box-container-wide">
+                    <HBox styleClass="info-header-wide">
+                        <Label text="Next" styleClass="info-header-text"/>
+                    </HBox>
+                    <VBox fx:id="nextPiecesContainer"
+                          styleClass="info-content-wide, info-content-next"
+                          spacing="8" alignment="TOP_CENTER"/>
                 </VBox>
             </VBox>
 
         </HBox>
 
-        <StackPane alignment="BOTTOM_RIGHT" style="-fx-padding: 20;" pickOnBounds="false">
-            <Button fx:id="pauseButton" text="||"
-                    style="-fx-font-size: 20px;
-                           -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: rgba(90, 95, 127, 0.7); -fx-border-color: white; -fx-border-width: 2; -fx-padding: 10 15; -fx-cursor: hand; -fx-background-radius: 5;
-                           -fx-border-radius: 5;"
+        <!-- PAUSE BUTTON -->
+        <StackPane alignment="BOTTOM_RIGHT">
+            <padding>
+                <Insets top="0" right="30" bottom="30" left="0"/>
+            </padding>
+            <Button fx:id="pauseButton"
+                    text="||"
+                    styleClass="pause-button"
                     onMouseEntered="#onPauseButtonHover"
                     onMouseExited="#onPauseButtonExit"
-                    onAction="#togglePause"/>
+                    onAction="#togglePause"
+                    focusTraversable="false"/>
         </StackPane>
 
-        <StackPane fx:id="overlayLayer" alignment="CENTER" pickOnBounds="false" mouseTransparent="false">
-            <StackPane fx:id="controlsContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="false">
-            </StackPane>
-            <StackPane fx:id="pauseContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="false">
+        <!-- OVERLAYS -->
+        <StackPane fx:id="overlayLayer" alignment="CENTER"
+                   pickOnBounds="false" mouseTransparent="true">
+
+            <!-- Pause Menu -->
+            <StackPane fx:id="pauseContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
                 <PauseMenuPanel fx:id="pauseMenuPanel"/>
             </StackPane>
-            <StackPane fx:id="nameInputContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="false">
+
+            <!-- Name Input -->
+            <StackPane fx:id="nameInputContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
                 <NameInputDialog fx:id="nameInputDialog"/>
             </StackPane>
-            <StackPane fx:id="gameOverContainer" alignment="CENTER" pickOnBounds="false" visible="false" mouseTransparent="false">
+
+            <!-- Game Over -->
+            <StackPane fx:id="gameOverContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
             </StackPane>
         </StackPane>
+
+    </StackPane>
+
+    <!-- Controls Panel -->
+    <StackPane fx:id="controlsContainer" alignment="CENTER" visible="false"
+               pickOnBounds="true" mouseTransparent="false">
     </StackPane>
 
 </StackPane>
