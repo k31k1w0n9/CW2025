@@ -18,6 +18,7 @@ public class GameOverPanel extends VBox {
     private VBox highScoresBox;
     private Font customFont;
     private Font customFontBold;
+    private Font customFontBoldButton;
 
     public GameOverPanel() {
         // Load custom fonts
@@ -29,16 +30,24 @@ public class GameOverPanel extends VBox {
             }
             if (fontStream2 != null) {
                 customFontBold = Font.loadFont(fontStream2, 28);
+                // Reload for button size
+                InputStream fontStream3 = getClass().getResourceAsStream("/BoutiqueBitmap9x9_Bold_1.9.ttf");
+                if (fontStream3 != null) {
+                    customFontBoldButton = Font.loadFont(fontStream3, 16);
+                }
             }
         } catch (Exception e) {
             System.err.println("Could not load custom fonts for GameOverPanel");
         }
-        if (customFont == null) customFont = Font.font("Arial", 28);
-        if (customFontBold == null) customFontBold = Font.font("Arial", Font.getDefault().getSize());
+        if (customFont == null)
+            customFont = Font.font("Arial", 28);
+        if (customFontBold == null)
+            customFontBold = Font.font("Arial", Font.getDefault().getSize());
+        if (customFontBoldButton == null)
+            customFontBoldButton = Font.font("Arial", 16);
 
         setAlignment(Pos.CENTER);
         setSpacing(20);
-        // FIXED: Dark navy background (#2C3E50) instead of dark blue
         setStyle("-fx-background-color: #2C3E50; " +
                 "-fx-border-color: white; " +
                 "-fx-border-width: 3; " +
@@ -56,7 +65,8 @@ public class GameOverPanel extends VBox {
 
         // High Scores Section
         Label highScoresTitle = new Label("HIGH SCORES");
-        highScoresTitle.setFont(Font.font(customFont != null ? customFont.getFamily() : "Arial", 18));
+        // Use bold font for High Scores title
+        highScoresTitle.setFont(Font.font(customFontBold != null ? customFontBold.getFamily() : "Arial", 18));
         highScoresTitle.setStyle("-fx-text-fill: white; " +
                 "-fx-padding: 10 0 5 0;");
 
@@ -82,10 +92,12 @@ public class GameOverPanel extends VBox {
 
         // Quit Button
         quitButton = createMenuButton("QUIT");
-        quitButton.setFont(Font.font(customFont != null ? customFont.getFamily() : "Arial", 16));
-        quitButton.setStyle(getButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white;");
-        quitButton.setOnMouseEntered(e -> quitButton.setStyle(getButtonHoverStyle() + "-fx-font-size: 16px; -fx-text-fill: #FFD75C;"));
-        quitButton.setOnMouseExited(e -> quitButton.setStyle(getButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white;"));
+        quitButton.setFont(Font.font(customFontBold != null ? customFontBold.getFamily() : "Arial", 18));
+        quitButton.setStyle(getQuitButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white; -fx-font-weight: bold;");
+        quitButton.setOnMouseEntered(
+                e -> quitButton.setStyle(getQuitButtonHoverStyle() + "-fx-font-size: 16px; -fx-text-fill: white;"));
+        quitButton.setOnMouseExited(
+                e -> quitButton.setStyle(getQuitButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white;"));
 
         buttonsBox.getChildren().addAll(homeButton, retryButton, quitButton);
 
@@ -99,7 +111,6 @@ public class GameOverPanel extends VBox {
         button.setMaxSize(70, 70);
 
         button.setStyle(getIconButtonStyle());
-        // FIXED: Yellow hover effect
         button.setOnMouseEntered(e -> button.setStyle(getIconButtonHoverStyle()));
         button.setOnMouseExited(e -> button.setStyle(getIconButtonStyle()));
 
@@ -111,11 +122,10 @@ public class GameOverPanel extends VBox {
         button.setPrefSize(140, 50);
         button.setMinSize(140, 50);
         button.setMaxSize(140, 50);
-        // FIXED: Use pixel font
         button.setFont(Font.font(customFont != null ? customFont.getFamily() : "Arial", 16));
         button.setStyle(getButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white;");
-        // FIXED: Yellow hover effect
-        button.setOnMouseEntered(e -> button.setStyle(getButtonHoverStyle() + "-fx-font-size: 16px; -fx-text-fill: #FFD75C;"));
+        button.setOnMouseEntered(
+                e -> button.setStyle(getButtonHoverStyle() + "-fx-font-size: 16px; -fx-text-fill: white;"));
         button.setOnMouseExited(e -> button.setStyle(getButtonStyle() + "-fx-font-size: 16px; -fx-text-fill: white;"));
         return button;
     }
@@ -138,12 +148,11 @@ public class GameOverPanel extends VBox {
     }
 
     private String getIconButtonHoverStyle() {
-        // FIXED: Yellow hover effect
-        return "-fx-background-color: transparent; " +
-                "-fx-text-fill: #FFD75C; " +
+        return "-fx-background-color: rgba(255, 255, 255, 0.1); " +
+                "-fx-text-fill: white; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 28px; " +
-                "-fx-border-color: #FFD75C; " +
+                "-fx-border-color: white; " +
                 "-fx-border-width: 2; " +
                 "-fx-border-radius: 8; " +
                 "-fx-background-radius: 8; " +
@@ -152,8 +161,7 @@ public class GameOverPanel extends VBox {
                 "-fx-min-width: 70px; " +
                 "-fx-max-width: 70px; " +
                 "-fx-min-height: 70px; " +
-                "-fx-max-height: 70px; " +
-                "-fx-effect: dropshadow(gaussian, rgba(255, 215, 92, 0.8), 5, 0.5, 0, 0);";
+                "-fx-max-height: 70px;";
     }
 
     private String getButtonStyle() {
@@ -168,16 +176,36 @@ public class GameOverPanel extends VBox {
     }
 
     private String getButtonHoverStyle() {
-        // FIXED: Yellow hover effect
-        return "-fx-background-color: transparent; " +
-                "-fx-text-fill: #FFD75C; " +
+        return "-fx-background-color: rgba(255, 255, 255, 0.1); " +
+                "-fx-text-fill: white; " +
                 "-fx-font-weight: bold; " +
-                "-fx-border-color: #FFD75C; " +
+                "-fx-border-color: white; " +
                 "-fx-border-width: 2; " +
                 "-fx-border-radius: 8; " +
                 "-fx-background-radius: 8; " +
-                "-fx-cursor: hand; " +
-                "-fx-effect: dropshadow(gaussian, rgba(255, 215, 92, 0.8), 5, 0.5, 0, 0);";
+                "-fx-cursor: hand;";
+    }
+
+    private String getQuitButtonStyle() {
+        return "-fx-background-color: #DD0584; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: bold; " +
+                "-fx-border-color: white; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8; " +
+                "-fx-cursor: hand;";
+    }
+
+    private String getQuitButtonHoverStyle() {
+        return "-fx-background-color: derive(#DD0584, 20%); " +
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: bold; " +
+                "-fx-border-color: white; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8; " +
+                "-fx-cursor: hand;";
     }
 
     public void updateHighScoresFromList(List<HighScoreManager.HighScoreEntry> highScores, int currentScore) {

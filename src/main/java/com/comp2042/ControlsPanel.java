@@ -38,12 +38,14 @@ public class ControlsPanel extends VBox {
         } catch (Exception e) {
             System.err.println("Could not load custom fonts for ControlsPanel");
         }
-        if (customFont == null) customFont = Font.font("Arial", 16);
-        if (customFontBold == null) customFontBold = Font.font("Arial", 48);
+        if (customFont == null)
+            customFont = Font.font("Arial", 16);
+        if (customFontBold == null)
+            customFontBold = Font.font("Arial", 48);
 
         setAlignment(Pos.CENTER);
         setSpacing(15);
-        setStyle("-fx-background-color: #3d4f6d; " +
+        setStyle("-fx-background-color: #2C3E50; " +
                 "-fx-border-color: white; " +
                 "-fx-border-width: 3; " +
                 "-fx-border-radius: 10; " +
@@ -54,8 +56,12 @@ public class ControlsPanel extends VBox {
         setMaxSize(600, 660);
         setMinSize(600, 660);
 
-        // Title with colorful letters
-        HBox titleBox = createColorfulTitle();
+        // Title
+        Label titleLabel = new Label("CONTROLS");
+        titleLabel.setFont(customFontBold);
+        titleLabel.setStyle("-fx-font-size: 48px; " +
+                "-fx-text-fill: white; " +
+                "-fx-effect: dropshadow(gaussian, #DD0584, 15, 0.8, 0, 0);");
 
         // Control mappings
         VBox controlsBox = new VBox(5);
@@ -70,8 +76,7 @@ public class ControlsPanel extends VBox {
                 createControlRow("Rotate Left", "ROTATE_LEFT"),
                 createControlRow("Rotate Right", "ROTATE_RIGHT"),
                 createControlRow("Hold", "HOLD"),
-                createControlRow("Pause", "PAUSE")
-        );
+                createControlRow("Pause", "PAUSE"));
 
         // Spacer to push button down
         Region spacer = new Region();
@@ -85,9 +90,8 @@ public class ControlsPanel extends VBox {
         doneButton.setPrefSize(200, 45);
         doneButton.setMinSize(200, 45);
         doneButton.setMaxSize(200, 45);
-        // FIXED: Use custom pixel font
         doneButton.setFont(customFont);
-        doneButton.setStyle("-fx-background-color: rgba(90, 95, 127, 0.8); " +
+        doneButton.setStyle("-fx-background-color: transparent; " +
                 "-fx-text-fill: white; " +
                 "-fx-font-size: 18px; " +
                 "-fx-border-color: white; " +
@@ -97,16 +101,16 @@ public class ControlsPanel extends VBox {
                 "-fx-cursor: hand;");
 
         doneButton.setOnMouseEntered(e -> doneButton.setStyle(
-                "-fx-background-color: rgba(120, 125, 167, 1.0); " +
-                        "-fx-text-fill: white; " +
+                "-fx-background-color: rgba(255, 255, 255, 0.1); " +
+                        "-fx-text-fill: #FFD75C; " +
                         "-fx-font-size: 18px; " +
-                        "-fx-border-color: white; " +
+                        "-fx-border-color: #FFD75C; " +
                         "-fx-border-width: 2; " +
                         "-fx-border-radius: 8; " +
                         "-fx-background-radius: 8; " +
                         "-fx-cursor: hand;"));
         doneButton.setOnMouseExited(e -> doneButton.setStyle(
-                "-fx-background-color: rgba(90, 95, 127, 0.8); " +
+                "-fx-background-color: transparent; " +
                         "-fx-text-fill: white; " +
                         "-fx-font-size: 18px; " +
                         "-fx-border-color: white; " +
@@ -116,7 +120,7 @@ public class ControlsPanel extends VBox {
                         "-fx-cursor: hand;"));
 
         buttonContainer.getChildren().add(doneButton);
-        getChildren().addAll(titleBox, controlsBox, spacer, buttonContainer);
+        getChildren().addAll(titleLabel, controlsBox, spacer, buttonContainer);
 
         // Set up key listener for rebinding
         setFocusTraversable(true);
@@ -146,28 +150,6 @@ public class ControlsPanel extends VBox {
         });
     }
 
-    private HBox createColorfulTitle() {
-        HBox titleBox = new HBox(2);
-        titleBox.setAlignment(Pos.CENTER);
-        titleBox.setPadding(new Insets(0, 0, 15, 0));
-
-        String[] letters = {"C", "O", "N", "T", "R", "O", "L", "S"};
-        String[] colors = {"#FF5C7C", "#FFA05C", "#FFD75C", "#8FD75C", "#5CD7D7",
-                "#5C8FFF", "#A05CFF", "#FF5CD7"};
-
-        for (int i = 0; i < letters.length; i++) {
-            Label letter = new Label(letters[i]);
-            // FIXED: Use custom pixel font
-            letter.setFont(customFontBold);
-            letter.setStyle("-fx-font-size: 48px; " +
-                    "-fx-text-fill: " + colors[i] + "; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 5, 0.5, 2, 2);");
-            titleBox.getChildren().add(letter);
-        }
-
-        return titleBox;
-    }
-
     private HBox createControlRow(String action, String bindingKey) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER);
@@ -175,7 +157,6 @@ public class ControlsPanel extends VBox {
         row.setMaxWidth(550);
 
         Label actionLabel = new Label(action);
-        // FIXED: Use custom pixel font
         actionLabel.setFont(customFont);
         actionLabel.setStyle("-fx-font-size: 16px; " +
                 "-fx-text-fill: white; " +
@@ -191,7 +172,6 @@ public class ControlsPanel extends VBox {
         Button keyButton = new Button(getCurrentKeysDisplay(bindingKey));
         keyButton.setPrefWidth(200);
         keyButton.setMinWidth(200);
-        // FIXED: Use custom pixel font
         keyButton.setFont(customFont);
         keyButton.setStyle(getKeyButtonStyle());
 
@@ -223,7 +203,8 @@ public class ControlsPanel extends VBox {
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < keys.size(); i++) {
-            if (i > 0) sb.append(" / ");
+            if (i > 0)
+                sb.append(" / ");
             sb.append(getKeyDisplayName(keys.get(i)));
         }
         return sb.toString();
@@ -268,9 +249,9 @@ public class ControlsPanel extends VBox {
     private String getKeyButtonStyle() {
         return "-fx-font-size: 16px; " +
                 "-fx-text-fill: white; " +
-                "-fx-background-color: rgba(0, 0, 0, 0.3); " +
+                "-fx-background-color: transparent; " +
                 "-fx-padding: 5 15; " +
-                "-fx-border-color: rgba(255, 255, 255, 0.5); " +
+                "-fx-border-color: white; " +
                 "-fx-border-width: 2; " +
                 "-fx-border-radius: 5; " +
                 "-fx-background-radius: 5; " +
@@ -282,9 +263,9 @@ public class ControlsPanel extends VBox {
         return "-fx-font-size: 16px; " +
                 "-fx-text-fill: #FFD75C; " +
                 "-fx-font-weight: bold; " +
-                "-fx-background-color: rgba(0, 0, 0, 0.5); " +
+                "-fx-background-color: rgba(255, 255, 255, 0.1); " +
                 "-fx-padding: 5 15; " +
-                "-fx-border-color: rgba(255, 215, 0, 0.8); " +
+                "-fx-border-color: #FFD75C; " +
                 "-fx-border-width: 2; " +
                 "-fx-border-radius: 5; " +
                 "-fx-background-radius: 5; " +

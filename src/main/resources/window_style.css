@@ -82,7 +82,7 @@
     -fx-pref-height: 480px;
     -fx-max-height: 480px;
     -fx-alignment: TOP_CENTER;
-    -fx-padding: 15 12 20 12;  /* Extra bottom padding: 20px */
+    -fx-padding: 15 12 20 12;
     -fx-spacing: 8;
 }
 
@@ -99,7 +99,6 @@
 .game-grid {
     -fx-background-color: #0d1421;
     -fx-grid-lines-visible: false;
-    /* FIXED: Ensure no padding/margin that could offset cells from (0,0) */
     -fx-padding: 0;
     -fx-border-insets: 0;
     -fx-background-insets: 0;

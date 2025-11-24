@@ -115,13 +115,47 @@ public class MatrixOperations {
     }
 
     /**
+     * Count how many rows will be cleared (without actually clearing them)
+     * @param matrix The game board matrix
+     * @return Number of rows that are completely filled
+     */
+    public static int countClearedRows(final int[][] matrix) {
+        int count = 0;
+        for (int i = 0; i < matrix.length; i++) {
+            boolean rowToClear = true;
+            for (int j = 0; j < matrix[0].length; j++) {
+                if (matrix[i][j] == 0) {
+                    rowToClear = false;
+                    break;
+                }
+            }
+            if (rowToClear) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
      * Check for complete rows and remove them
      * @param matrix The game board matrix (22x10)
      * @return ClearRow object with cleared rows and new matrix
      */
     public static ClearRow checkRemoving(final int[][] matrix) {
+        return checkRemoving(matrix, false, false);
+    }
+
+    /**
+     * Check for complete rows and remove them with T-Spin and back-to-back support
+     * @param matrix The game board matrix (22x10)
+     * @param isTSpin Whether this clear was a T-Spin
+     * @param isBackToBack Whether this is a back-to-back clear
+     * @return ClearRow object with cleared rows and new matrix
+     */
+    public static ClearRow checkRemoving(final int[][] matrix, boolean isTSpin, boolean isBackToBack) {
         System.out.println("\n=== CHECK LINE CLEARING ===");
         System.out.println("Matrix size: " + matrix.length + " rows x " + matrix[0].length + " cols");
+        System.out.println("T-Spin: " + isTSpin + ", Back-to-Back: " + isBackToBack);
 
         int[][] tmp = new int[matrix.length][matrix[0].length];
         Deque<int[]> newRows = new ArrayDeque<>();
@@ -158,15 +192,58 @@ public class MatrixOperations {
         }
 
         // GDD Section 8.0: Scoring System
-        // Single: 100, Double: 300, Triple: 400, Tetris: 800
-        // But code uses: 50 * n^2
-        int scoreBonus = 50 * clearedRows.size() * clearedRows.size();
+        int linesCleared = clearedRows.size();
+        int scoreBonus = 0;
+        
+        if (isTSpin) {
+            // T-Spin scoring
+            switch (linesCleared) {
+                case 0:
+                    scoreBonus = 500; // T-Spin (no clear)
+                    break;
+                case 1:
+                    scoreBonus = 800; // T-Spin Single
+                    break;
+                case 2:
+                    scoreBonus = 1200; // T-Spin Double
+                    break;
+                case 3:
+                    scoreBonus = 1600; // T-Spin Triple
+                    break;
+                default:
+                    scoreBonus = 1600; // T-Spin Triple (max)
+            }
+        } else {
+            // Regular line clear scoring
+            switch (linesCleared) {
+                case 1:
+                    scoreBonus = 100; // Single
+                    break;
+                case 2:
+                    scoreBonus = 300; // Double
+                    break;
+                case 3:
+                    scoreBonus = 400; // Triple
+                    break;
+                case 4:
+                    scoreBonus = 800; // Tetris
+                    break;
+                default:
+                    scoreBonus = 0;
+            }
+        }
+        
+        // Back-to-Back bonus: 1.5x multiplier for Tetris or T-Spin
+        if (isBackToBack && (linesCleared == 4 || isTSpin)) {
+            scoreBonus = (int)(scoreBonus * 1.5);
+            System.out.println("Back-to-Back bonus applied: " + scoreBonus);
+        }
 
-        System.out.println("Lines cleared: " + clearedRows.size());
+        System.out.println("Lines cleared: " + linesCleared);
         System.out.println("Score bonus: " + scoreBonus);
         System.out.println("=== LINE CLEARING COMPLETE ===\n");
 
-        return new ClearRow(clearedRows.size(), tmp, scoreBonus);
+        return new ClearRow(linesCleared, tmp, scoreBonus, isTSpin, isBackToBack);
     }
 
     /**

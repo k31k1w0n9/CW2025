@@ -98,6 +98,8 @@ public class GuiController implements Initializable {
     @FXML
     private StackPane controlsContainer;
     @FXML
+    private StackPane customizeContainer;
+    @FXML
     private StackPane overlayLayer;
     @FXML
     private StackPane gameOverContainer;
@@ -241,6 +243,7 @@ public class GuiController implements Initializable {
         setupKeyHandlers();
         setupPauseMenu();
         setupControlsPanel();
+        setupCustomizePanel();
         setupGameOverPanel();
         setupNameInputDialog();
         setupOverlayLayer();
@@ -256,7 +259,8 @@ public class GuiController implements Initializable {
             mainMenuPanel.setControlsAction(this::showControlsFromMainMenu);
             System.out.println("✓ Controls action set");
 
-            mainMenuPanel.setCustomizedAction(() -> System.out.println("Customized clicked"));
+            mainMenuPanel.setCustomizedAction(this::showCustomizeFromMainMenu);
+            System.out.println("✓ Customize action set");
 
             mainMenuPanel.setQuitAction(() -> System.exit(0));
         }
@@ -362,7 +366,8 @@ public class GuiController implements Initializable {
         int boardWidth = BOARD_COLS * BRICK_SIZE; // 10 columns
         int boardHeight = BOARD_ROWS * BRICK_SIZE; // 20 VISIBLE rows
 
-        // FIXED: Ensure boardContainer aligns to top for proper alignment with side boxes
+        // FIXED: Ensure boardContainer aligns to top for proper alignment with side
+        // boxes
         if (boardContainer != null) {
             boardContainer.setAlignment(Pos.CENTER);
         }
@@ -509,6 +514,55 @@ public class GuiController implements Initializable {
             System.out.println("Done button action set");
         } else {
             System.err.println("❌ controlsContainer is NULL!");
+        }
+    }
+
+    private void setupCustomizePanel() {
+        System.out.println("Setting up customize panel...");
+
+        if (customizeContainer != null) {
+            System.out.println("customizeContainer exists");
+            customizeContainer.getChildren().clear();
+
+            CustomizePanel customizePanel = new CustomizePanel();
+            System.out.println("CustomizePanel created");
+
+            customizeContainer.getChildren().add(customizePanel);
+            System.out.println("CustomizePanel added to container");
+
+            customizeContainer.setVisible(false);
+            customizeContainer.setPickOnBounds(false);
+            customizeContainer.setMouseTransparent(true);
+            System.out.println("CustomizeContainer hidden initially");
+
+            // Wire up buttons
+            customizePanel.getSaveButton().setOnAction(e -> {
+                System.out.println("Save button clicked");
+                // TODO: Implement save functionality
+            });
+
+            customizePanel.getResetButton().setOnAction(e -> {
+                System.out.println("Reset button clicked - clearing grid");
+                // TODO: Implement grid reset functionality
+            });
+
+            customizePanel.getBackButton().setOnAction(e -> {
+                System.out.println("Back button clicked - returning to main menu");
+                customizeContainer.setVisible(false);
+                customizeContainer.setPickOnBounds(false);
+                customizeContainer.setMouseTransparent(true);
+
+                if (gameContainer != null)
+                    gameContainer.setVisible(false);
+                if (mainMenuContainer != null)
+                    mainMenuContainer.setVisible(true);
+
+                updateOverlayLayer();
+            });
+
+            System.out.println("Customize panel setup complete");
+        } else {
+            System.err.println("❌ customizeContainer is NULL!");
         }
     }
 
@@ -686,6 +740,70 @@ public class GuiController implements Initializable {
 
         updateOverlayLayer();
         System.out.println("=== SHOW CONTROLS COMPLETE ===\n");
+    }
+
+    private void showCustomizeFromMainMenu() {
+        System.out.println("\n=== SHOW CUSTOMIZE FROM MAIN MENU ===");
+
+        if (mainMenuContainer != null) {
+            mainMenuContainer.setVisible(false);
+            System.out.println("✓ Main menu hidden");
+        }
+
+        if (gameContainer != null) {
+            gameContainer.setVisible(false);
+            System.out.println("✓ Game container hidden");
+        }
+
+        if (customizeContainer != null) {
+            System.out.println("customizeContainer exists");
+            System.out.println("Children count: " + customizeContainer.getChildren().size());
+
+            customizeContainer.setVisible(true);
+            customizeContainer.setPickOnBounds(true);
+            customizeContainer.setMouseTransparent(false);
+            customizeContainer.toFront();
+            System.out.println("✓ customizeContainer made VISIBLE and INTERACTIVE");
+
+            if (!customizeContainer.getChildren().isEmpty()) {
+                CustomizePanel panel = (CustomizePanel) customizeContainer.getChildren().get(0);
+                System.out.println("✓ Got CustomizePanel from children");
+
+                panel.setVisible(true);
+                System.out.println("✓ CustomizePanel set visible");
+
+                // Note: Back button navigation is handled in setupCustomizePanel
+                // We need to add a method to get back to main menu
+                panel.getSaveButton().setOnAction(e -> {
+                    System.out.println("Save clicked from customize panel");
+                    // TODO: Save functionality
+                });
+
+                panel.getResetButton().setOnAction(e -> {
+                    System.out.println("Back clicked - returning to main menu");
+                    customizeContainer.setVisible(false);
+                    customizeContainer.setPickOnBounds(false);
+                    customizeContainer.setMouseTransparent(true);
+
+                    if (gameContainer != null)
+                        gameContainer.setVisible(false);
+                    if (mainMenuContainer != null)
+                        mainMenuContainer.setVisible(true);
+
+                    updateOverlayLayer();
+                });
+
+                panel.requestFocus();
+                System.out.println("✓ Focus requested");
+            } else {
+                System.err.println("❌ customizeContainer has NO children!");
+            }
+        } else {
+            System.err.println("❌ customizeContainer is NULL!");
+        }
+
+        updateOverlayLayer();
+        System.out.println("=== SHOW CUSTOMIZE COMPLETE ===\n");
     }
 
     public void returnToMainMenu() {
@@ -1149,13 +1267,41 @@ public class GuiController implements Initializable {
                     boolean showCombo = comboCount >= 2;
                     int scoreBonus = downData.getClearRow().getScoreBonus();
 
-                    String clearText = switch (linesCleared) {
-                        case 1 -> "SINGLE\n+" + scoreBonus;
-                        case 2 -> "DOUBLE\n+" + scoreBonus;
-                        case 3 -> "TRIPLE\n+" + scoreBonus;
-                        case 4 -> "TETRIS\n+" + scoreBonus;
-                        default -> "+" + scoreBonus;
-                    };
+                    // Build clear text with T-Spin and back-to-back support
+                    String clearText;
+                    if (downData.getClearRow().isTSpin()) {
+                        // T-Spin clears
+                        switch (linesCleared) {
+                            case 0:
+                                clearText = "T-SPIN\n+" + scoreBonus;
+                                break;
+                            case 1:
+                                clearText = "T-SPIN\nSINGLE\n+" + scoreBonus;
+                                break;
+                            case 2:
+                                clearText = "T-SPIN\nDOUBLE\n+" + scoreBonus;
+                                break;
+                            case 3:
+                                clearText = "T-SPIN\nTRIPLE\n+" + scoreBonus;
+                                break;
+                            default:
+                                clearText = "T-SPIN\n+" + scoreBonus;
+                        }
+                    } else {
+                        // Regular clears
+                        clearText = switch (linesCleared) {
+                            case 1 -> "SINGLE\n+" + scoreBonus;
+                            case 2 -> "DOUBLE\n+" + scoreBonus;
+                            case 3 -> "TRIPLE\n+" + scoreBonus;
+                            case 4 -> "TETRIS\n+" + scoreBonus;
+                            default -> "+" + scoreBonus;
+                        };
+                    }
+                    
+                    // Back-to-Back indicator
+                    if (downData.getClearRow().isBackToBack()) {
+                        clearText += "\nBACK-TO-BACK";
+                    }
 
                     // FIXED: Show COMBO for any consecutive clear (Tetris then Single, or any
                     // combination)
@@ -1198,7 +1344,8 @@ public class GuiController implements Initializable {
             DownData downData = eventListener.onHardDropEvent(event);
 
             int linesCleared = 0;
-            // FIXED: Check lines cleared explicitly - only reset combo when linesCleared == 0
+            // FIXED: Check lines cleared explicitly - only reset combo when linesCleared ==
+            // 0
             // FIXED: Combo logic - ensure clearRow is present (hard drop always locks)
             if (downData.getClearRow() != null) {
                 linesCleared = downData.getClearRow().getLinesRemoved();
@@ -1211,13 +1358,41 @@ public class GuiController implements Initializable {
                     boolean showCombo = comboCount >= 2;
                     int scoreBonus = downData.getClearRow().getScoreBonus();
 
-                    String clearText = switch (linesCleared) {
-                        case 1 -> "SINGLE\n+" + scoreBonus;
-                        case 2 -> "DOUBLE\n+" + scoreBonus;
-                        case 3 -> "TRIPLE\n+" + scoreBonus;
-                        case 4 -> "TETRIS\n+" + scoreBonus;
-                        default -> "+" + scoreBonus;
-                    };
+                    // Build clear text with T-Spin and back-to-back support
+                    String clearText;
+                    if (downData.getClearRow().isTSpin()) {
+                        // T-Spin clears
+                        switch (linesCleared) {
+                            case 0:
+                                clearText = "T-SPIN\n+" + scoreBonus;
+                                break;
+                            case 1:
+                                clearText = "T-SPIN\nSINGLE\n+" + scoreBonus;
+                                break;
+                            case 2:
+                                clearText = "T-SPIN\nDOUBLE\n+" + scoreBonus;
+                                break;
+                            case 3:
+                                clearText = "T-SPIN\nTRIPLE\n+" + scoreBonus;
+                                break;
+                            default:
+                                clearText = "T-SPIN\n+" + scoreBonus;
+                        }
+                    } else {
+                        // Regular clears
+                        clearText = switch (linesCleared) {
+                            case 1 -> "SINGLE\n+" + scoreBonus;
+                            case 2 -> "DOUBLE\n+" + scoreBonus;
+                            case 3 -> "TRIPLE\n+" + scoreBonus;
+                            case 4 -> "TETRIS\n+" + scoreBonus;
+                            default -> "+" + scoreBonus;
+                        };
+                    }
+                    
+                    // Back-to-Back indicator
+                    if (downData.getClearRow().isBackToBack()) {
+                        clearText += "\nBACK-TO-BACK";
+                    }
 
                     // FIXED: Show COMBO for any consecutive clear (Tetris then Single, or any
                     // combination)

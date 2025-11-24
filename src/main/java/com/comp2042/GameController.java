@@ -24,6 +24,9 @@ public class GameController implements InputEventListener {
         boolean canMove = board.moveBrickDown();
         ClearRow clearRow = null;
         if (!canMove) {
+            // Check if lock delay has expired (SimpleBoard.shouldLock())
+            // For now, we'll lock immediately when canMove is false
+            // The lock delay is handled internally in SimpleBoard
             board.mergeBrickToBackground();
             clearRow = board.clearRows();
             if (clearRow.getLinesRemoved() > 0) {
