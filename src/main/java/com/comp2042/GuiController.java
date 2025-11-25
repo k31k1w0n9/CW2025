@@ -3,7 +3,9 @@ package com.comp2042;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -113,6 +115,7 @@ public class GuiController implements Initializable {
     @FXML
     private Button pauseButton;
 
+    private CustomizePanel customizePanel;
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
     private Rectangle[][] rectangles;
@@ -524,7 +527,7 @@ public class GuiController implements Initializable {
             System.out.println("customizeContainer exists");
             customizeContainer.getChildren().clear();
 
-            CustomizePanel customizePanel = new CustomizePanel();
+            customizePanel = new CustomizePanel();
             System.out.println("CustomizePanel created");
 
             customizeContainer.getChildren().add(customizePanel);
@@ -536,18 +539,11 @@ public class GuiController implements Initializable {
             System.out.println("CustomizeContainer hidden initially");
 
             // Wire up buttons
-            customizePanel.getSaveButton().setOnAction(e -> {
-                System.out.println("Save button clicked");
-                // TODO: Implement save functionality
-            });
+            // Save and Reset are handled internally by CustomizePanel
 
-            customizePanel.getResetButton().setOnAction(e -> {
-                System.out.println("Reset button clicked - clearing grid");
-                // TODO: Implement grid reset functionality
-            });
-
-            customizePanel.getBackButton().setOnAction(e -> {
+            customizePanel.setOnBackAction(() -> {
                 System.out.println("Back button clicked - returning to main menu");
+
                 customizeContainer.setVisible(false);
                 customizeContainer.setPickOnBounds(false);
                 customizeContainer.setMouseTransparent(true);
@@ -765,36 +761,13 @@ public class GuiController implements Initializable {
             customizeContainer.toFront();
             System.out.println("✓ customizeContainer made VISIBLE and INTERACTIVE");
 
-            if (!customizeContainer.getChildren().isEmpty()) {
-                CustomizePanel panel = (CustomizePanel) customizeContainer.getChildren().get(0);
-                System.out.println("✓ Got CustomizePanel from children");
-
-                panel.setVisible(true);
-                System.out.println("✓ CustomizePanel set visible");
-
-                // Note: Back button navigation is handled in setupCustomizePanel
-                // We need to add a method to get back to main menu
-                panel.getSaveButton().setOnAction(e -> {
-                    System.out.println("Save clicked from customize panel");
-                    // TODO: Save functionality
-                });
-
-                panel.getResetButton().setOnAction(e -> {
-                    System.out.println("Back clicked - returning to main menu");
-                    customizeContainer.setVisible(false);
-                    customizeContainer.setPickOnBounds(false);
-                    customizeContainer.setMouseTransparent(true);
-
-                    if (gameContainer != null)
-                        gameContainer.setVisible(false);
-                    if (mainMenuContainer != null)
-                        mainMenuContainer.setVisible(true);
-
-                    updateOverlayLayer();
-                });
-
-                panel.requestFocus();
-                System.out.println("✓ Focus requested");
+            if (customizePanel != null) {
+                customizePanel.setVisible(true);
+                customizePanel.requestFocus();
+                System.out.println("✓ CustomizePanel ready");
+            } else if (!customizeContainer.getChildren().isEmpty()) {
+                System.out.println("✓ CustomizePanel retrieved from container");
+                customizeContainer.getChildren().get(0).requestFocus();
             } else {
                 System.err.println("❌ customizeContainer has NO children!");
             }
@@ -853,10 +826,7 @@ public class GuiController implements Initializable {
             return;
         nextPiecesContainer.getChildren().clear();
 
-        int pieceSize = (int) (BRICK_SIZE * 0.5);
         int verticalSpacing = 15; // Space between pieces
-        int topPadding = 10;
-        int bottomPadding = 20;
 
         for (int idx = 0; idx < nextShapes.size(); idx++) {
             int[][] shape = nextShapes.get(idx);
@@ -865,6 +835,7 @@ public class GuiController implements Initializable {
             pieceContainer.setMinHeight(70);
             pieceContainer.setMaxHeight(70);
             pieceContainer.setAlignment(Pos.CENTER);
+            pieceContainer.setPadding(new Insets(5)); // Add padding for large pieces
 
             // Add spacing except for last piece
             if (idx < nextShapes.size() - 1) {
@@ -872,20 +843,76 @@ public class GuiController implements Initializable {
             }
 
             GridPane nextGrid = new GridPane();
-            nextGrid.setHgap(1);
-            nextGrid.setVgap(1);
+            nextGrid.setHgap(2);
+            nextGrid.setVgap(2);
             nextGrid.setAlignment(Pos.CENTER);
 
             int rows = shape.length;
             int cols = shape[0].length;
 
+            // Calculate dynamic piece size based on piece dimensions to fit in container
+            // Account for padding and gaps
+            double availableWidth = 120; // Approximate width available
+            double availableHeight = 60; // Approximate height available per piece
+            double cellSizeWidth = (availableWidth - (cols - 1) * 2) / cols;
+            double cellSizeHeight = (availableHeight - (rows - 1) * 2) / rows;
+            int pieceSize = (int) Math.min(Math.min(cellSizeWidth, cellSizeHeight), BRICK_SIZE * 0.5);
+            pieceSize = Math.max(pieceSize, 8); // Minimum size
+
+            // Check if this is a custom piece to get per-piece color
+            boolean isCustomPiece = false;
+            Color customColor = null;
+            boolean useOutline = false;
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    int val = shape[i][j];
+                    if (val >= 9) {
+                        isCustomPiece = true;
+                        customColor = getCustomPieceColorById(val);
+                        // Get outline setting from piece settings
+                        GameSettings.PieceSettings settings = getPieceSettingsById(val);
+                        useOutline = settings != null ? settings.outlineEnabled
+                                : GameSettings.getInstance().isOutlineEnabled();
+                        break;
+                    } else if (val == 8) {
+                        // Legacy support
+                        isCustomPiece = true;
+                        String pieceName = findCustomPieceName(shape);
+                        if (pieceName != null) {
+                            GameSettings.PieceSettings settings = GameSettings.getInstance()
+                                    .getPieceSettings(pieceName);
+                            if (settings != null) {
+                                customColor = settings.color;
+                                useOutline = settings.outlineEnabled;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (isCustomPiece)
+                    break;
+            }
+
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
                     if (shape[i][j] != 0) {
                         Rectangle cell = new Rectangle(pieceSize, pieceSize);
-                        cell.setFill(getColor(shape[i][j]));
-                        cell.setStroke(Color.BLACK);
-                        cell.setStrokeWidth(1);
+
+                        // Use per-piece color for custom pieces
+                        if (isCustomPiece && customColor != null) {
+                            cell.setFill(customColor);
+                            if (useOutline) {
+                                cell.setStroke(Color.WHITE);
+                                cell.setStrokeWidth(1);
+                            } else {
+                                cell.setStroke(Color.TRANSPARENT);
+                            }
+                        } else {
+                            cell.setFill(getColor(shape[i][j]));
+                            cell.setStroke(Color.BLACK);
+                            cell.setStrokeWidth(1);
+                        }
+
                         cell.setArcWidth(3);
                         cell.setArcHeight(3);
                         nextGrid.add(cell, j, i);
@@ -986,31 +1013,149 @@ public class GuiController implements Initializable {
     }
 
     private Paint getFillColor(int i) {
+        if (i >= 9) {
+            // New custom piece IDs
+            return getCustomPieceColorById(i);
+        }
+        if (i >= 1 && i <= 7) {
+            String name = getStandardPieceName(i);
+            if (name != null) {
+                GameSettings.PieceSettings ps = GameSettings.getInstance().getPieceSettings(name);
+                if (ps != null)
+                    return ps.color;
+            }
+        }
+
         return switch (i) {
             case 0 -> Color.TRANSPARENT;
-            case 1 -> Color.CYAN;
-            case 2 -> Color.LIMEGREEN;
-            case 3 -> Color.PURPLE;
-            case 4 -> Color.YELLOW;
-            case 5 -> Color.RED;
-            case 6 -> Color.BLUE;
-            case 7 -> Color.ORANGE;
+            case 1 -> Color.CYAN; // I
+            case 2 -> Color.BLUE; // J
+            case 3 -> Color.ORANGE; // L
+            case 4 -> Color.YELLOW; // O
+            case 5 -> Color.GREEN; // S
+            case 6 -> Color.PURPLE; // T
+            case 7 -> Color.RED; // Z
+            case 8 -> GameSettings.getInstance().getCustomPieceColor(); // Fallback for legacy ID 8
             default -> Color.WHITE;
         };
     }
 
     private Color getColor(int value) {
+        if (value >= 9) {
+            return getCustomPieceColorById(value);
+        }
+        if (value >= 1 && value <= 7) {
+            String name = getStandardPieceName(value);
+            if (name != null) {
+                GameSettings.PieceSettings ps = GameSettings.getInstance().getPieceSettings(name);
+                if (ps != null)
+                    return ps.color;
+            }
+        }
+
         return switch (value) {
             case 0 -> Color.TRANSPARENT;
-            case 1 -> Color.CYAN;
-            case 2 -> Color.LIMEGREEN;
-            case 3 -> Color.PURPLE;
-            case 4 -> Color.YELLOW;
-            case 5 -> Color.RED;
-            case 6 -> Color.BLUE;
-            case 7 -> Color.ORANGE;
+            case 1 -> Color.CYAN; // I
+            case 2 -> Color.BLUE; // J
+            case 3 -> Color.ORANGE; // L
+            case 4 -> Color.YELLOW; // O
+            case 5 -> Color.GREEN; // S
+            case 6 -> Color.PURPLE; // T
+            case 7 -> Color.RED; // Z
+            case 8 -> GameSettings.getInstance().getCustomPieceColor(); // Fallback if piece not found
             default -> Color.GRAY;
         };
+    }
+
+    private String getStandardPieceName(int id) {
+        return switch (id) {
+            case 1 -> "I Piece";
+            case 2 -> "J Piece";
+            case 3 -> "L Piece";
+            case 4 -> "O Piece";
+            case 5 -> "S Piece";
+            case 6 -> "T Piece";
+            case 7 -> "Z Piece";
+            default -> null;
+        };
+    }
+
+    // Find custom piece name by matching shape to stored designs
+    private String findCustomPieceName(int[][] shape) {
+        if (shape == null)
+            return null;
+
+        GameSettings settings = GameSettings.getInstance();
+        Map<String, boolean[][]> allPieces = settings.getAllCustomPieces();
+
+        for (Map.Entry<String, boolean[][]> entry : allPieces.entrySet()) {
+            boolean[][] design = entry.getValue();
+            if (design == null)
+                continue;
+
+            // Check if shape matches this design (accounting for possible rotations)
+            if (shapeMatches(shape, design)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    // Check if shape matches design (simple comparison - assumes base rotation)
+    private boolean shapeMatches(int[][] shape, boolean[][] design) {
+        if (shape == null || design == null)
+            return false;
+        if (shape.length != design.length)
+            return false;
+        if (shape[0].length != design[0].length)
+            return false;
+
+        for (int i = 0; i < shape.length; i++) {
+            for (int j = 0; j < shape[i].length; j++) {
+                boolean shapeHasBlock = shape[i][j] == 8;
+                boolean designHasBlock = design[i][j];
+                if (shapeHasBlock != designHasBlock) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Get settings for a custom piece by ID
+    private GameSettings.PieceSettings getPieceSettingsById(int id) {
+        GameSettings settings = GameSettings.getInstance();
+        for (GameSettings.PieceSettings ps : settings.getAllCustomPieces().keySet().stream()
+                .map(settings::getPieceSettings)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList())) {
+            if (ps.id == id) {
+                return ps;
+            }
+        }
+        return null;
+    }
+
+    // Get color for a custom piece by ID
+    private Color getCustomPieceColorById(int id) {
+        GameSettings.PieceSettings ps = getPieceSettingsById(id);
+        if (ps != null) {
+            return ps.color;
+        }
+        return GameSettings.getInstance().getCustomPieceColor(); // Fallback
+    }
+
+    // Get color for a custom piece shape
+    private Color getColorForCustomPiece(int[][] shape) {
+        String pieceName = findCustomPieceName(shape);
+        if (pieceName != null) {
+            GameSettings.PieceSettings settings = GameSettings.getInstance().getPieceSettings(pieceName);
+            if (settings != null) {
+                return settings.color;
+            }
+        }
+        // Fallback to default custom piece color
+        return GameSettings.getInstance().getCustomPieceColor();
     }
 
     private void rebuildBrickRectangles(int[][] brickShape) {
@@ -1064,8 +1209,8 @@ public class GuiController implements Initializable {
             for (int j = 0; j < cols; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
-                rectangle.setStroke(Color.rgb(50, 70, 100, 0.3));
-                rectangle.setStrokeWidth(0.5);
+                rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+                rectangle.setStrokeWidth(0.8);
                 displayMatrix[i][j] = rectangle;
                 rectangle.setLayoutX(j * BRICK_SIZE);
                 rectangle.setLayoutY(i * BRICK_SIZE);
@@ -1246,6 +1391,31 @@ public class GuiController implements Initializable {
         rectangle.setFill(getFillColor(color));
         rectangle.setArcHeight(8);
         rectangle.setArcWidth(8);
+
+        // Apply outline if enabled and it's a block (not empty space)
+        if (color != 0) {
+            // For filled cells, check if outline is enabled
+            // For custom pieces, check per-piece settings; for others, use global setting
+            boolean useOutline = false;
+            if (color == 8) {
+                // Custom piece - we'll need to get piece name from context
+                // For now, use global setting as fallback
+                useOutline = GameSettings.getInstance().isOutlineEnabled();
+            } else {
+                useOutline = GameSettings.getInstance().isOutlineEnabled();
+            }
+
+            if (useOutline) {
+                rectangle.setStroke(Color.WHITE);
+                rectangle.setStrokeWidth(1);
+            } else {
+                rectangle.setStroke(Color.TRANSPARENT);
+            }
+        } else {
+            // Keep grid lines for empty cells - make them more visible
+            rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+            rectangle.setStrokeWidth(0.8);
+        }
     }
 
     private void moveDown(MoveEvent event) {
@@ -1297,7 +1467,7 @@ public class GuiController implements Initializable {
                             default -> "+" + scoreBonus;
                         };
                     }
-                    
+
                     // Back-to-Back indicator
                     if (downData.getClearRow().isBackToBack()) {
                         clearText += "\nBACK-TO-BACK";
@@ -1333,7 +1503,9 @@ public class GuiController implements Initializable {
                 }
             }
 
-            refreshBrick(downData.getViewData());
+            if (!isGameOver.get()) {
+                refreshBrick(downData.getViewData());
+            }
             updateNextPieces(downData.getViewData().getNextBrickData());
         }
         gamePanel.requestFocus();
@@ -1388,7 +1560,7 @@ public class GuiController implements Initializable {
                             default -> "+" + scoreBonus;
                         };
                     }
-                    
+
                     // Back-to-Back indicator
                     if (downData.getClearRow().isBackToBack()) {
                         clearText += "\nBACK-TO-BACK";
@@ -1424,7 +1596,9 @@ public class GuiController implements Initializable {
                 }
             }
 
-            refreshBrick(downData.getViewData());
+            if (!isGameOver.get()) {
+                refreshBrick(downData.getViewData());
+            }
             updateNextPieces(downData.getViewData().getNextBrickData());
         }
         gamePanel.requestFocus();

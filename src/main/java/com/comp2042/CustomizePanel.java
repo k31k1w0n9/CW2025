@@ -1,5 +1,7 @@
 package com.comp2042;
 
+import java.util.List;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -7,9 +9,16 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
@@ -24,14 +33,25 @@ public class CustomizePanel extends StackPane {
     private Button saveButton;
     private Button resetButton;
     private Button backButton;
+    private Button deleteButton;
+    private Button outlineToggleButton;
+    private Button enableToggleButton;
+    private Button size3x3Button;
+    private Button size4x4Button;
+    private ColorPicker colorPicker;
 
     private String selectedPiece = "I Piece";
     private Color selectedColor = Color.web("#4ade80");
     private boolean outlineEnabled = true;
     private boolean enableInGame = true;
 
+    private Runnable onBackAction;
+
     private int gridSize = 4;
     private boolean[][] pieceDesign = new boolean[gridSize][gridSize];
+    private GridPane previewGrid;
+    private Label previewPlaceholder;
+    private Slider spawnSlider;
 
     public CustomizePanel() {
         // Load custom fonts
@@ -45,6 +65,12 @@ public class CustomizePanel extends StackPane {
             customFont = Font.font("Consolas", 14);
             customFontBold = Font.font("Consolas", 16);
         }
+
+        // Load persisted appearance flags first so controls show correct defaults
+        GameSettings persistedSettings = GameSettings.getInstance();
+        selectedColor = persistedSettings.getCustomPieceColor();
+        outlineEnabled = persistedSettings.isOutlineEnabled();
+        enableInGame = persistedSettings.isEnableInGame();
 
         // Transparent background to show game background
         setStyle("-fx-background-color: transparent;");
@@ -85,6 +111,22 @@ public class CustomizePanel extends StackPane {
         panelContainer.getChildren().addAll(topBar, mainContainer);
 
         getChildren().add(panelContainer);
+
+        // Load initial state
+        loadSettings();
+    }
+
+    private void loadSettings() {
+        GameSettings settings = GameSettings.getInstance();
+
+        // Load appearance
+        selectedColor = settings.getCustomPieceColor();
+        outlineEnabled = settings.isOutlineEnabled();
+        enableInGame = settings.isEnableInGame();
+
+        // Default selection focuses on first custom slot so saving works immediately
+        selectPiece("Custom 1");
+        applyAppearanceSettingsToUI();
     }
 
     private HBox createTopBar() {
@@ -167,6 +209,7 @@ public class CustomizePanel extends StackPane {
                         "-fx-min-height: 28; " +
                         "-fx-background-radius: 14; " +
                         "-fx-cursor: hand;");
+        addButton.setOnAction(e -> addNewCustomPiece());
 
         headerBox.getChildren().addAll(piecesLabel, addButton);
 
@@ -174,14 +217,8 @@ public class CustomizePanel extends StackPane {
         piecesListBox = new VBox(6);
         piecesListBox.setAlignment(Pos.TOP_CENTER);
 
-        String[] pieces = { "I Piece", "O Piece", "T Piece", "S Piece", "Z Piece", "J Piece", "L Piece", "Custom 1",
-                "Custom 2", "Custom 3" };
-        String[] blockCounts = { "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks",
-                "5 blocks", "8 blocks", "6 blocks" };
-
-        for (int i = 0; i < pieces.length; i++) {
-            piecesListBox.getChildren().add(createPieceListItem(pieces[i], blockCounts[i], i < 7));
-        }
+        // Load all pieces from GameSettings
+        refreshPiecesList();
 
         // Wrap in ScrollPane
         ScrollPane scrollPane = new ScrollPane(piecesListBox);
@@ -195,7 +232,7 @@ public class CustomizePanel extends StackPane {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         // Delete button
-        Button deleteButton = new Button("Delete Piece");
+        deleteButton = new Button("Delete Piece");
         deleteButton.setFont(customFont);
         deleteButton.setMaxWidth(Double.MAX_VALUE);
         deleteButton.setStyle(
@@ -204,6 +241,8 @@ public class CustomizePanel extends StackPane {
                         "-fx-padding: 10 16 10 16; " +
                         "-fx-background-radius: 5; " +
                         "-fx-cursor: hand;");
+        deleteButton.setOnAction(e -> deleteSelectedPiece());
+        updateDeleteButtonState();
 
         leftPanel.getChildren().addAll(headerBox, scrollPane, deleteButton);
 
@@ -273,23 +312,107 @@ public class CustomizePanel extends StackPane {
             }
         });
 
-        item.setOnMouseClicked(e -> {
-            selectedPiece = name;
-            refreshPiecesList();
-        });
+        item.setOnMouseClicked(e -> selectPiece(name));
 
         return item;
     }
 
     private void refreshPiecesList() {
         piecesListBox.getChildren().clear();
-        String[] pieces = { "I Piece", "O Piece", "T Piece", "S Piece", "Z Piece", "J Piece", "L Piece", "Custom 1",
-                "Custom 2", "Custom 3" };
-        String[] blockCounts = { "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks",
-                "5 blocks", "8 blocks", "6 blocks" };
 
-        for (int i = 0; i < pieces.length; i++) {
-            piecesListBox.getChildren().add(createPieceListItem(pieces[i], blockCounts[i], i < 7));
+        // Add standard pieces
+        String[] standardPieces = { "I Piece", "O Piece", "T Piece", "S Piece", "Z Piece", "J Piece", "L Piece" };
+        String[] standardBlockCounts = { "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks", "4 blocks",
+                "4 blocks" };
+
+        for (int i = 0; i < standardPieces.length; i++) {
+            piecesListBox.getChildren().add(createPieceListItem(standardPieces[i], standardBlockCounts[i], true));
+        }
+
+        // Add custom pieces dynamically from GameSettings
+        List<String> customPieceNames = GameSettings.getInstance().getCustomPieceNames();
+        for (String customName : customPieceNames) {
+            boolean[][] design = GameSettings.getInstance().getCustomPiece(customName);
+            int blockCount = countBlocks(design);
+            piecesListBox.getChildren().add(createPieceListItem(customName, blockCount + " blocks", false));
+        }
+    }
+
+    private int countBlocks(boolean[][] design) {
+        if (design == null)
+            return 0;
+        int count = 0;
+        for (boolean[] row : design) {
+            if (row != null) {
+                for (boolean cell : row) {
+                    if (cell)
+                        count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private void loadPiece(String name) {
+        // Load piece settings first to get the correct grid size
+        GameSettings.PieceSettings settings = GameSettings.getInstance().getPieceSettings(name);
+        if (settings != null) {
+            // Set color and outline FIRST (before creating grid)
+            selectedColor = settings.color;
+            outlineEnabled = settings.outlineEnabled;
+            enableInGame = settings.enableInGame;
+
+            // Update UI to reflect loaded settings
+            if (colorPicker != null) {
+                colorPicker.setValue(selectedColor);
+            }
+            updateOutlineToggle();
+
+            // Update spawn rate slider
+            if (spawnSlider != null) {
+                spawnSlider.setValue(settings.spawnRate);
+            }
+
+            updateEnableToggle();
+
+            // Set grid size and recreate grid if needed
+            if (gridSize != settings.gridSize) {
+                gridSize = settings.gridSize;
+                pieceDesign = new boolean[gridSize][gridSize];
+                createDesignGrid();
+                updateSizeButtonStyles();
+            }
+        } else {
+            // Fallback if no settings found
+            gridSize = 4;
+            pieceDesign = new boolean[gridSize][gridSize];
+        }
+
+        // Clear grid
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                pieceDesign[i][j] = false;
+            }
+        }
+
+        // Load design from GameSettings (works for both standard and custom pieces)
+        boolean[][] savedDesign = GameSettings.getInstance().getCustomPiece(name);
+        if (savedDesign != null) {
+            int rows = Math.min(gridSize, savedDesign.length);
+            int cols = Math.min(gridSize, savedDesign[0].length);
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    if (i < savedDesign.length && j < savedDesign[i].length) {
+                        pieceDesign[i][j] = savedDesign[i][j];
+                    }
+                }
+            }
+        }
+
+        if (designGrid != null) {
+            refreshDesignGrid();
+        } else {
+            updatePreview();
         }
     }
 
@@ -320,11 +443,15 @@ public class CustomizePanel extends StackPane {
         sizeLabel.setFont(customFont);
         sizeLabel.setStyle("-fx-text-fill: rgba(255, 255, 255, 0.8);");
 
-        Button size3x3 = createSizeButton("3x3");
-        Button size4x4 = createSizeButton("4x4");
-        size4x4.setStyle(size4x4.getStyle() + "-fx-background-color: #DD0584;");
+        size3x3Button = createSizeButton("3x3");
+        size4x4Button = createSizeButton("4x4");
+        size4x4Button.setStyle(size4x4Button.getStyle() + "-fx-background-color: #DD0584;");
 
-        gridHeader.getChildren().addAll(gridLabel, sizeLabel, size3x3, size4x4);
+        size3x3Button.setOnAction(e -> setGridSize(3));
+        size4x4Button.setOnAction(e -> setGridSize(4));
+        updateSizeButtonStyles();
+
+        gridHeader.getChildren().addAll(gridLabel, sizeLabel, size3x3Button, size4x4Button);
 
         // Design grid
         designGrid = new GridPane();
@@ -349,8 +476,18 @@ public class CustomizePanel extends StackPane {
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
 
         saveButton = createTopButton("Save", "#4ade80");
+        saveButton.setOnAction(e -> saveSettings());
+
         resetButton = createTopButton("Reset", "#DD0584");
+        resetButton.setOnAction(e -> resetGrid());
+
         backButton = createTopButton("Back", "#5a5f7f");
+        backButton.setOnAction(e -> {
+            saveSettings();
+            if (onBackAction != null) {
+                onBackAction.run();
+            }
+        });
 
         buttonBox.getChildren().addAll(saveButton, resetButton, backButton);
 
@@ -393,20 +530,25 @@ public class CustomizePanel extends StackPane {
                 final int r = row;
                 final int c = col;
 
-                // Left click to add
+                // Always add click handlers, but check if editable at click time
                 cell.setOnMouseClicked(e -> {
-                    if (e.isPrimaryButtonDown()) {
-                        pieceDesign[r][c] = true;
-                        updateCell(cell, true);
-                    } else if (e.isSecondaryButtonDown()) {
-                        pieceDesign[r][c] = false;
-                        updateCell(cell, false);
+                    // Check if this piece is editable
+                    if (!GameSettings.getInstance().isStandardPiece(selectedPiece)) {
+                        if (e.getButton() == MouseButton.PRIMARY) {
+                            pieceDesign[r][c] = true;
+                            updateCell(cell, true);
+                            updatePreview();
+                        } else if (e.getButton() == MouseButton.SECONDARY) {
+                            pieceDesign[r][c] = false;
+                            updateCell(cell, false);
+                            updatePreview();
+                        }
                     }
                 });
 
-                // Hover effect
+                // Hover effect (only for custom pieces)
                 cell.setOnMouseEntered(e -> {
-                    if (!pieceDesign[r][c]) {
+                    if (!GameSettings.getInstance().isStandardPiece(selectedPiece) && !pieceDesign[r][c]) {
                         cell.setStyle(
                                 "-fx-background-color: rgba(70, 75, 95, 0.9); " +
                                         "-fx-border-color: rgba(120, 125, 145, 0.7); " +
@@ -488,12 +630,13 @@ public class CustomizePanel extends StackPane {
         colorLabel.setFont(customFont);
         colorLabel.setStyle("-fx-text-fill: white;");
 
-        ColorPicker colorPicker = new ColorPicker(selectedColor);
+        colorPicker = new ColorPicker(selectedColor);
         colorPicker.setPrefWidth(90);
         colorPicker.setStyle("-fx-cursor: hand;");
         colorPicker.setOnAction(e -> {
             selectedColor = colorPicker.getValue();
             refreshDesignGrid();
+            updatePreview();
         });
 
         colorBox.getChildren().addAll(colorLabel, colorPicker);
@@ -509,26 +652,14 @@ public class CustomizePanel extends StackPane {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button outlineButton = new Button(outlineEnabled ? "ON" : "OFF");
-        outlineButton.setFont(customFont);
-        outlineButton.setPrefSize(60, 25);
-        outlineButton.setStyle(
-                "-fx-background-color: " + (outlineEnabled ? "#4ade80" : "#5a5f7f") + "; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-cursor: hand;");
-
-        outlineButton.setOnAction(e -> {
+        outlineToggleButton = createToggleButton(outlineEnabled);
+        outlineToggleButton.setOnAction(e -> {
             outlineEnabled = !outlineEnabled;
-            outlineButton.setText(outlineEnabled ? "ON" : "OFF");
-            outlineButton.setStyle(
-                    "-fx-background-color: " + (outlineEnabled ? "#4ade80" : "#5a5f7f") + "; " +
-                            "-fx-text-fill: white; " +
-                            "-fx-background-radius: 5; " +
-                            "-fx-cursor: hand;");
+            updateOutlineToggle();
+            refreshDesignGrid();
         });
 
-        outlineBox.getChildren().addAll(outlineLabel, spacer, outlineButton);
+        outlineBox.getChildren().addAll(outlineLabel, spacer, outlineToggleButton);
 
         section.getChildren().addAll(titleLabel, colorBox, outlineBox);
 
@@ -561,26 +692,14 @@ public class CustomizePanel extends StackPane {
         Region spacer1 = new Region();
         HBox.setHgrow(spacer1, Priority.ALWAYS);
 
-        Button enableButton = new Button(enableInGame ? "ON" : "OFF");
-        enableButton.setFont(customFont);
-        enableButton.setPrefSize(60, 25);
-        enableButton.setStyle(
-                "-fx-background-color: " + (enableInGame ? "#4ade80" : "#5a5f7f") + "; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-cursor: hand;");
-
-        enableButton.setOnAction(e -> {
+        enableToggleButton = createToggleButton(enableInGame);
+        enableToggleButton.setOnAction(e -> {
             enableInGame = !enableInGame;
-            enableButton.setText(enableInGame ? "ON" : "OFF");
-            enableButton.setStyle(
-                    "-fx-background-color: " + (enableInGame ? "#4ade80" : "#5a5f7f") + "; " +
-                            "-fx-text-fill: white; " +
-                            "-fx-background-radius: 5; " +
-                            "-fx-cursor: hand;");
+            updateEnableToggle();
+            GameSettings.getInstance().setPieceEnableInGame(selectedPiece, enableInGame);
         });
 
-        enableBox.getChildren().addAll(enableLabel, spacer1, enableButton);
+        enableBox.getChildren().addAll(enableLabel, spacer1, enableToggleButton);
 
         // Spawn rate slider
         VBox spawnBox = new VBox(6);
@@ -601,10 +720,17 @@ public class CustomizePanel extends StackPane {
 
         spawnHeader.getChildren().addAll(spawnLabel, spacer2, spawnValue);
 
-        Slider spawnSlider = new Slider(0, 10, 5);
+        spawnSlider = new Slider(0, 10, 5);
         spawnSlider.setShowTickMarks(false);
         spawnSlider.setShowTickLabels(false);
         spawnSlider.setStyle("-fx-control-inner-background: rgba(60, 65, 90, 0.8);");
+
+        spawnSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int val = newVal.intValue();
+            spawnValue.setText(val + "/10");
+            // Update individual setting immediately
+            GameSettings.getInstance().setPieceSpawnRate(selectedPiece, val);
+        });
 
         Label helpText = new Label("How often piece appears");
         helpText.setFont(Font.font(customFont.getFamily(), 11));
@@ -639,11 +765,17 @@ public class CustomizePanel extends StackPane {
                 "-fx-background-color: rgba(30, 35, 55, 0.9); " +
                         "-fx-background-radius: 5;");
 
-        Label previewText = new Label("Piece preview");
-        previewText.setFont(Font.font(customFont.getFamily(), 12));
-        previewText.setStyle("-fx-text-fill: rgba(255, 255, 255, 0.4);");
+        previewGrid = new GridPane();
+        previewGrid.setAlignment(Pos.CENTER);
+        previewGrid.setHgap(4);
+        previewGrid.setVgap(4);
 
-        previewArea.getChildren().add(previewText);
+        previewPlaceholder = new Label("Piece preview");
+        previewPlaceholder.setFont(Font.font(customFont.getFamily(), 12));
+        previewPlaceholder.setStyle("-fx-text-fill: rgba(255, 255, 255, 0.4);");
+
+        previewArea.getChildren().addAll(previewGrid, previewPlaceholder);
+        updatePreview();
 
         section.getChildren().addAll(titleLabel, previewArea);
 
@@ -660,6 +792,7 @@ public class CustomizePanel extends StackPane {
                 }
             }
         }
+        updatePreview();
     }
 
     public Button getSaveButton() {
@@ -672,5 +805,295 @@ public class CustomizePanel extends StackPane {
 
     public Button getBackButton() {
         return backButton;
+    }
+
+    public Button getDeleteButton() {
+        return deleteButton;
+    }
+
+    public void saveSettings() {
+        GameSettings settings = GameSettings.getInstance();
+        boolean isStandard = GameSettings.getInstance().isStandardPiece(selectedPiece);
+
+        // Save current piece design if it's a custom piece (not standard)
+        if (selectedPiece.startsWith("Custom")) {
+            settings.saveCustomPiece(selectedPiece, pieceDesign);
+            settings.setPieceGridSize(selectedPiece, gridSize);
+        }
+
+        // Save color and outline for ALL pieces (standard and custom)
+        settings.setPieceColor(selectedPiece, selectedColor);
+        settings.setPieceOutlineEnabled(selectedPiece, outlineEnabled);
+
+        // Save spawn rate for all pieces
+        if (spawnSlider != null) {
+            settings.setPieceSpawnRate(selectedPiece, (int) spawnSlider.getValue());
+        }
+
+        // Update list to reflect new block count
+        refreshPiecesList();
+
+        // Save enable status for the specific piece
+        settings.setPieceEnableInGame(selectedPiece, enableInGame);
+        // Spawn rate is handled in the slider listener
+
+        // Ensure preview is up to date
+        updatePreview();
+
+        System.out.println("Settings saved for: " + selectedPiece);
+    }
+
+    public void resetGrid() {
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                pieceDesign[i][j] = false;
+            }
+        }
+        refreshDesignGrid();
+    }
+
+    public void setOnBackAction(Runnable action) {
+        this.onBackAction = action;
+    }
+
+    /**
+     * Allows programmatic selection of a piece, mirroring the list click behaviour.
+     * Useful for tests and for potential future integrations.
+     */
+    public void selectPiece(String name) {
+        if (name == null) {
+            return;
+        }
+        selectedPiece = name;
+        loadPiece(name);
+        refreshPiecesList();
+        updateDeleteButtonState();
+        updateGridSizeButtonsState();
+    }
+
+    private void updateDeleteButtonState() {
+        // Disable delete button for standard pieces
+        boolean isStandard = GameSettings.getInstance().isStandardPiece(selectedPiece);
+        if (deleteButton != null) {
+            deleteButton.setDisable(isStandard);
+            if (isStandard) {
+                deleteButton.setStyle(
+                        "-fx-background-color: #666; " +
+                                "-fx-text-fill: #999; " +
+                                "-fx-padding: 10 16 10 16; " +
+                                "-fx-background-radius: 5; " +
+                                "-fx-cursor: not-allowed;");
+            } else {
+                deleteButton.setStyle(
+                        "-fx-background-color: #DD0584; " +
+                                "-fx-text-fill: white; " +
+                                "-fx-padding: 10 16 10 16; " +
+                                "-fx-background-radius: 5; " +
+                                "-fx-cursor: hand;");
+            }
+        }
+    }
+
+    private void updateGridSizeButtonsState() {
+        // Disable grid size buttons for standard pieces
+        boolean isStandard = GameSettings.getInstance().isStandardPiece(selectedPiece);
+        if (size3x3Button != null) {
+            size3x3Button.setDisable(isStandard);
+        }
+        if (size4x4Button != null) {
+            size4x4Button.setDisable(isStandard);
+        }
+
+        // Enable color picker and outline toggle for ALL pieces
+        if (colorPicker != null) {
+            colorPicker.setDisable(false);
+        }
+        if (outlineToggleButton != null) {
+            outlineToggleButton.setDisable(false);
+        }
+    }
+
+    /**
+     * Programmatically set a cell's filled state. Keeps the grid in sync when used
+     * outside direct mouse interaction (e.g. tests or future presets).
+     */
+    public void setCellFilled(int row, int col, boolean filled) {
+        if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
+            throw new IllegalArgumentException("Cell coordinates out of bounds");
+        }
+        pieceDesign[row][col] = filled;
+
+        if (designGrid != null) {
+            int index = row * gridSize + col;
+            if (index < designGrid.getChildren().size()) {
+                StackPane cell = (StackPane) designGrid.getChildren().get(index);
+                updateCell(cell, filled);
+            }
+        }
+        updatePreview();
+    }
+
+    public boolean isCellFilled(int row, int col) {
+        if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
+            throw new IllegalArgumentException("Cell coordinates out of bounds");
+        }
+        return pieceDesign[row][col];
+    }
+
+    private void setGridSize(int newSize) {
+        if (gridSize == newSize) {
+            return;
+        }
+
+        // Save current design to GameSettings before changing size
+        if (selectedPiece.startsWith("Custom")) {
+            GameSettings.getInstance().saveCustomPiece(selectedPiece, pieceDesign);
+            GameSettings.getInstance().setPieceGridSize(selectedPiece, newSize);
+        }
+
+        // Update grid size
+        gridSize = newSize;
+
+        // Load the design from GameSettings (which stores the full design)
+        boolean[][] savedDesign = GameSettings.getInstance().getCustomPiece(selectedPiece);
+        if (savedDesign != null) {
+            // Create new design array with new size
+            pieceDesign = new boolean[newSize][newSize];
+            // Copy from saved design (which has the original size)
+            int rows = Math.min(newSize, savedDesign.length);
+            int cols = Math.min(newSize, savedDesign[0].length);
+            for (int i = 0; i < rows; i++) {
+                System.arraycopy(savedDesign[i], 0, pieceDesign[i], 0, cols);
+            }
+        } else {
+            pieceDesign = new boolean[newSize][newSize];
+        }
+
+        createDesignGrid();
+        refreshDesignGrid();
+        updateSizeButtonStyles();
+    }
+
+    private void updateSizeButtonStyles() {
+        if (size3x3Button != null) {
+            size3x3Button.setStyle(
+                    "-fx-background-color: " + (gridSize == 3 ? "#DD0584" : "#4a4f6f") + "; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-padding: 6 12 6 12; " +
+                            "-fx-background-radius: 5; " +
+                            "-fx-cursor: hand;");
+        }
+        if (size4x4Button != null) {
+            size4x4Button.setStyle(
+                    "-fx-background-color: " + (gridSize == 4 ? "#DD0584" : "#4a4f6f") + "; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-padding: 6 12 6 12; " +
+                            "-fx-background-radius: 5; " +
+                            "-fx-cursor: hand;");
+        }
+    }
+
+    private Button createToggleButton(boolean active) {
+        Button button = new Button(active ? "ON" : "OFF");
+        button.setFont(customFont);
+        button.setPrefSize(60, 25);
+        button.setStyle(
+                "-fx-background-color: " + (active ? "#4ade80" : "#5a5f7f") + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-cursor: hand;");
+        return button;
+    }
+
+    private void updateOutlineToggle() {
+        if (outlineToggleButton != null) {
+            outlineToggleButton.setText(outlineEnabled ? "ON" : "OFF");
+            outlineToggleButton.setStyle(
+                    "-fx-background-color: " + (outlineEnabled ? "#4ade80" : "#5a5f7f") + "; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-background-radius: 5; " +
+                            "-fx-cursor: hand;");
+        }
+    }
+
+    private void updateEnableToggle() {
+        if (enableToggleButton != null) {
+            enableToggleButton.setText(enableInGame ? "ON" : "OFF");
+            enableToggleButton.setStyle(
+                    "-fx-background-color: " + (enableInGame ? "#4ade80" : "#5a5f7f") + "; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-background-radius: 5; " +
+                            "-fx-cursor: hand;");
+        }
+    }
+
+    private void applyAppearanceSettingsToUI() {
+        if (colorPicker != null) {
+            colorPicker.setValue(selectedColor);
+        }
+        updateOutlineToggle();
+        updateEnableToggle();
+        refreshDesignGrid();
+    }
+
+    private void deleteSelectedPiece() {
+        if (selectedPiece == null || !selectedPiece.startsWith("Custom")) {
+            return;
+        }
+
+        // Remove the piece from GameSettings
+        GameSettings.getInstance().removeCustomPiece(selectedPiece);
+
+        // Remove from list and select the first available piece
+        refreshPiecesList();
+
+        // Select first custom piece if available, otherwise first standard piece
+        List<String> customNames = GameSettings.getInstance().getCustomPieceNames();
+        if (!customNames.isEmpty()) {
+            selectPiece(customNames.get(0));
+        } else {
+            selectPiece("I Piece");
+        }
+    }
+
+    private void addNewCustomPiece() {
+        String newName = GameSettings.getInstance().addNewCustomPiece();
+        refreshPiecesList();
+        selectPiece(newName);
+    }
+
+    private void updatePreview() {
+        if (previewGrid == null) {
+            return;
+        }
+
+        previewGrid.getChildren().clear();
+        int size = gridSize;
+        double available = 110;
+        double spacing = 4;
+        double cellSize = Math.max(10, Math.min(24, (available - ((size - 1) * spacing)) / size));
+        boolean hasBlocks = false;
+
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (row < pieceDesign.length && col < pieceDesign[row].length && pieceDesign[row][col]) {
+                    hasBlocks = true;
+                    Rectangle rect = new Rectangle(cellSize, cellSize);
+                    rect.setArcWidth(6);
+                    rect.setArcHeight(6);
+                    rect.setFill(selectedColor);
+                    if (outlineEnabled) {
+                        rect.setStroke(Color.WHITE);
+                        rect.setStrokeWidth(1.5);
+                    } else {
+                        rect.setStroke(Color.TRANSPARENT);
+                    }
+                    previewGrid.add(rect, col, row);
+                }
+            }
+        }
+
+        previewPlaceholder.setVisible(!hasBlocks);
+        previewGrid.setVisible(hasBlocks);
     }
 }
