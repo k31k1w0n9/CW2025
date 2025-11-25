@@ -20,7 +20,7 @@
 - [x] Ghost Piece (Drop Preview)
 - [x] Hard Drop
 - [x] Hold Piece
-- [ ] Twists (Spin Moves)
+- [x] Twists (Spin Moves)
 - [ ] Levels & Speed
 
 ## Visual & UI Features
@@ -43,4 +43,4 @@
 - This README.md
 
 ---
-*Last updated: 22/11/2025 03:20:00*
+*Last updated: 24/11/2025 02:25:00*
