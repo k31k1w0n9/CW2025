@@ -33,4 +33,6 @@ public interface Board {
     boolean holdPiece();
 
     int[][] getHoldPieceShape();
+
+    boolean shouldLock();
 }

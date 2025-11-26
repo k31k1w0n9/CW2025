@@ -23,25 +23,30 @@ public class GameController implements InputEventListener {
     public DownData onDownEvent(MoveEvent event) {
         boolean canMove = board.moveBrickDown();
         ClearRow clearRow = null;
+
         if (!canMove) {
-            // Check if lock delay has expired (SimpleBoard.shouldLock())
-            // For now, we'll lock immediately when canMove is false
-            // The lock delay is handled internally in SimpleBoard
-            board.mergeBrickToBackground();
-            clearRow = board.clearRows();
-            if (clearRow.getLinesRemoved() > 0) {
-                board.getScore().add(clearRow.getScoreBonus());
-            }
+            // Check if lock delay has expired
+            // Note: Per Tetris Guideline, Soft Drop does NOT lock the piece. Only Hard Drop
+            // locks immediately.
+            if (board.shouldLock()) {
+                board.mergeBrickToBackground();
+                clearRow = board.clearRows();
+                if (clearRow.getLinesRemoved() > 0) {
+                    board.getScore().add(clearRow.getScoreBonus());
+                }
 
-            // FIXED: Check if new brick creation causes game over
-            boolean gameOver = board.createNewBrick();
-            if (gameOver) {
-                viewGuiController.gameOver();
-            } else {
-                refreshNextPiece();
-            }
+                // Check if new brick creation causes game over
+                boolean gameOver = board.createNewBrick();
+                if (gameOver) {
+                    viewGuiController.gameOver();
+                } else {
+                    refreshNextPiece();
+                }
 
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+                viewGuiController.refreshGameBackground(board.getBoardMatrix());
+            }
+            // If !shouldLock(), we do nothing (wait for next tick or user input)
+            // The piece stays in the same position (in lock delay)
 
         } else {
             if (event.getEventSource() == EventSource.USER) {
@@ -112,7 +117,7 @@ public class GameController implements InputEventListener {
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
         viewGuiController.updateHoldPiece(null);
         refreshNextPiece();
-        // FIXED: Refresh the falling brick display so it's visible in the new game
+        // Refresh the falling brick display so it's visible in the new game
         viewGuiController.refreshBrick(board.getViewData());
     }
 }

@@ -134,6 +134,13 @@ public class GuiController implements Initializable {
     // FIXED: Track combo count for continuous clears
     private int comboCount = 0;
 
+    // Level and gravity system
+    private LevelSystem levelSystem;
+
+    public LevelSystem getLevelSystem() {
+        return levelSystem;
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -171,16 +178,16 @@ public class GuiController implements Initializable {
             }
 
             if (customFont != null && customFontBold != null) {
-                System.out.println("✓✓✓ ALL FONTS LOADED SUCCESSFULLY ✓✓✓");
+                System.out.println("[OK] ALL FONTS LOADED SUCCESSFULLY");
             } else {
-                System.err.println("⚠ WARNING: Some fonts failed to load, using fallback");
+                System.err.println("[WARNING] Some fonts failed to load, using fallback");
                 if (customFont == null)
                     customFont = Font.font("Arial", 28);
                 if (customFontBold == null)
                     customFontBold = Font.font("Arial", 20);
             }
         } catch (Exception e) {
-            System.err.println("❌ FONT LOADING ERROR:");
+            System.err.println("[ERROR] FONT LOADING ERROR:");
             e.printStackTrace();
             customFont = Font.font("Arial", 28);
             customFontBold = Font.font("Arial", 20);
@@ -195,6 +202,7 @@ public class GuiController implements Initializable {
         // Initialize managers
         highScoreManager = new HighScoreManager();
         keyBindings = new KeyBindings();
+        levelSystem = new LevelSystem();
 
         // Setup board dimensions
         setupBoardDimensions();
@@ -218,6 +226,14 @@ public class GuiController implements Initializable {
 
         // Update high score display
         updateHighScoreDisplay();
+
+        // Bind level and lines to UI
+        if (levelLabel != null) {
+            levelLabel.textProperty().bind(levelSystem.levelProperty().asString());
+        }
+        if (linesLabel != null) {
+            linesLabel.textProperty().bind(levelSystem.totalLinesClearedProperty().asString());
+        }
 
         if (pauseButton != null) {
             pauseButton.setMinSize(55, 55);
@@ -260,10 +276,10 @@ public class GuiController implements Initializable {
             mainMenuPanel.setStartGameAction(this::startNewGame);
 
             mainMenuPanel.setControlsAction(this::showControlsFromMainMenu);
-            System.out.println("✓ Controls action set");
+            System.out.println("Controls action set");
 
             mainMenuPanel.setCustomizedAction(this::showCustomizeFromMainMenu);
-            System.out.println("✓ Customize action set");
+            System.out.println("Customize action set");
 
             mainMenuPanel.setQuitAction(() -> System.exit(0));
         }
@@ -274,7 +290,7 @@ public class GuiController implements Initializable {
             gamePanel.requestFocus();
         }
 
-        System.out.println("✓ GuiController initialization complete");
+        System.out.println("GuiController initialization complete");
     }
 
     private void applyCustomFontsToAllLabels() {
@@ -309,7 +325,7 @@ public class GuiController implements Initializable {
             // FIXED: Apply fonts to header labels in info boxes
             applyFontsToInfoBoxHeaders();
 
-            System.out.println("✓ Fonts applied to all UI elements");
+            System.out.println("Fonts applied to all UI elements");
         } catch (Exception e) {
             System.err.println("Error applying fonts: " + e.getMessage());
             e.printStackTrace();
@@ -516,7 +532,7 @@ public class GuiController implements Initializable {
             });
             System.out.println("Done button action set");
         } else {
-            System.err.println("❌ controlsContainer is NULL!");
+            System.err.println("[ERROR] controlsContainer is NULL!");
         }
     }
 
@@ -558,7 +574,7 @@ public class GuiController implements Initializable {
 
             System.out.println("Customize panel setup complete");
         } else {
-            System.err.println("❌ customizeContainer is NULL!");
+            System.err.println("[ERROR] customizeContainer is NULL!");
         }
     }
 
@@ -678,12 +694,12 @@ public class GuiController implements Initializable {
 
         if (mainMenuContainer != null) {
             mainMenuContainer.setVisible(false);
-            System.out.println("✓ Main menu hidden");
+            System.out.println("Main menu hidden");
         }
 
         if (gameContainer != null) {
             gameContainer.setVisible(false);
-            System.out.println("✓ Game container hidden");
+            System.out.println("Game container hidden");
         }
 
         // FIXED: controlsContainer is now at root level, so it can be shown
@@ -696,7 +712,7 @@ public class GuiController implements Initializable {
             controlsContainer.setPickOnBounds(true);
             controlsContainer.setMouseTransparent(false);
             controlsContainer.toFront(); // Ensure it's on top
-            System.out.println("✓ controlsContainer made VISIBLE and INTERACTIVE");
+            System.out.println("controlsContainer made VISIBLE and INTERACTIVE");
 
             System.out.println("Container properties:");
             System.out.println("  Visible: " + controlsContainer.isVisible());
@@ -705,10 +721,10 @@ public class GuiController implements Initializable {
 
             if (!controlsContainer.getChildren().isEmpty()) {
                 ControlsPanel panel = (ControlsPanel) controlsContainer.getChildren().get(0);
-                System.out.println("✓ Got ControlsPanel from children");
+                System.out.println("Got ControlsPanel from children");
 
                 panel.setVisible(true);
-                System.out.println("✓ ControlsPanel set visible");
+                System.out.println("ControlsPanel set visible");
 
                 panel.getDoneButton().setOnAction(e -> {
                     System.out.println("Done button clicked - returning to main menu");
@@ -723,15 +739,15 @@ public class GuiController implements Initializable {
 
                     updateOverlayLayer();
                 });
-                System.out.println("✓ Done button action configured");
+                System.out.println("Done button action configured");
 
                 panel.requestFocus();
-                System.out.println("✓ Focus requested");
+                System.out.println("Focus requested");
             } else {
-                System.err.println("❌ controlsContainer has NO children!");
+                System.err.println("[ERROR] controlsContainer has NO children!");
             }
         } else {
-            System.err.println("❌ controlsContainer is NULL!");
+            System.err.println("[ERROR] controlsContainer is NULL!");
         }
 
         updateOverlayLayer();
@@ -743,12 +759,12 @@ public class GuiController implements Initializable {
 
         if (mainMenuContainer != null) {
             mainMenuContainer.setVisible(false);
-            System.out.println("✓ Main menu hidden");
+            System.out.println("Main menu hidden");
         }
 
         if (gameContainer != null) {
             gameContainer.setVisible(false);
-            System.out.println("✓ Game container hidden");
+            System.out.println("Game container hidden");
         }
 
         if (customizeContainer != null) {
@@ -759,20 +775,20 @@ public class GuiController implements Initializable {
             customizeContainer.setPickOnBounds(true);
             customizeContainer.setMouseTransparent(false);
             customizeContainer.toFront();
-            System.out.println("✓ customizeContainer made VISIBLE and INTERACTIVE");
+            System.out.println("customizeContainer made VISIBLE and INTERACTIVE");
 
             if (customizePanel != null) {
                 customizePanel.setVisible(true);
                 customizePanel.requestFocus();
-                System.out.println("✓ CustomizePanel ready");
+                System.out.println("CustomizePanel ready");
             } else if (!customizeContainer.getChildren().isEmpty()) {
-                System.out.println("✓ CustomizePanel retrieved from container");
+                System.out.println("CustomizePanel retrieved from container");
                 customizeContainer.getChildren().get(0).requestFocus();
             } else {
-                System.err.println("❌ customizeContainer has NO children!");
+                System.err.println("[ERROR] customizeContainer has NO children!");
             }
         } else {
-            System.err.println("❌ customizeContainer is NULL!");
+            System.err.println("[ERROR] customizeContainer is NULL!");
         }
 
         updateOverlayLayer();
@@ -1013,29 +1029,38 @@ public class GuiController implements Initializable {
     }
 
     private Paint getFillColor(int i) {
+        // Handle transparent/empty cells
+        if (i == 0) {
+            return Color.TRANSPARENT;
+        }
+
+        // Handle custom pieces (ID >= 9)
         if (i >= 9) {
-            // New custom piece IDs
             return getCustomPieceColorById(i);
         }
+
+        // Handle standard pieces (ID 1-7) - always use GameSettings
         if (i >= 1 && i <= 7) {
             String name = getStandardPieceName(i);
             if (name != null) {
                 GameSettings.PieceSettings ps = GameSettings.getInstance().getPieceSettings(name);
-                if (ps != null)
+                if (ps != null && ps.color != null) {
                     return ps.color;
+                }
             }
         }
 
+        // Fallback colors (should rarely be used if GameSettings is properly
+        // initialized)
         return switch (i) {
-            case 0 -> Color.TRANSPARENT;
-            case 1 -> Color.CYAN; // I
-            case 2 -> Color.BLUE; // J
-            case 3 -> Color.ORANGE; // L
-            case 4 -> Color.YELLOW; // O
-            case 5 -> Color.GREEN; // S
-            case 6 -> Color.PURPLE; // T
-            case 7 -> Color.RED; // Z
-            case 8 -> GameSettings.getInstance().getCustomPieceColor(); // Fallback for legacy ID 8
+            case 1 -> Color.CYAN; // I Piece
+            case 2 -> Color.YELLOW; // O Piece
+            case 3 -> Color.PURPLE; // T Piece
+            case 4 -> Color.GREEN; // S Piece
+            case 5 -> Color.RED; // Z Piece
+            case 6 -> Color.BLUE; // J Piece
+            case 7 -> Color.ORANGE; // L Piece
+            case 8 -> GameSettings.getInstance().getCustomPieceColor(); // Legacy custom piece
             default -> Color.WHITE;
         };
     }
@@ -1055,13 +1080,13 @@ public class GuiController implements Initializable {
 
         return switch (value) {
             case 0 -> Color.TRANSPARENT;
-            case 1 -> Color.CYAN; // I
-            case 2 -> Color.BLUE; // J
-            case 3 -> Color.ORANGE; // L
-            case 4 -> Color.YELLOW; // O
-            case 5 -> Color.GREEN; // S
-            case 6 -> Color.PURPLE; // T
-            case 7 -> Color.RED; // Z
+            case 1 -> Color.CYAN; // I Piece
+            case 2 -> Color.YELLOW; // O Piece
+            case 3 -> Color.PURPLE; // T Piece
+            case 4 -> Color.GREEN; // S Piece
+            case 5 -> Color.RED; // Z Piece
+            case 6 -> Color.BLUE; // J Piece
+            case 7 -> Color.ORANGE; // L Piece
             case 8 -> GameSettings.getInstance().getCustomPieceColor(); // Fallback if piece not found
             default -> Color.GRAY;
         };
@@ -1070,12 +1095,12 @@ public class GuiController implements Initializable {
     private String getStandardPieceName(int id) {
         return switch (id) {
             case 1 -> "I Piece";
-            case 2 -> "J Piece";
-            case 3 -> "L Piece";
-            case 4 -> "O Piece";
-            case 5 -> "S Piece";
-            case 6 -> "T Piece";
-            case 7 -> "Z Piece";
+            case 2 -> "O Piece";
+            case 3 -> "T Piece";
+            case 4 -> "S Piece";
+            case 5 -> "Z Piece";
+            case 6 -> "J Piece";
+            case 7 -> "L Piece";
             default -> null;
         };
     }
@@ -1430,6 +1455,12 @@ public class GuiController implements Initializable {
                 linesCleared = downData.getClearRow().getLinesRemoved();
 
                 if (linesCleared > 0) {
+                    // Add lines to level system
+                    levelSystem.addLinesCleared(linesCleared);
+
+                    // Update drop speed based on new gravity
+                    updateDropSpeed();
+
                     // IF linesCleared > 0: Increment the combo
                     comboCount++;
                     // FIXED: Show COMBO for ANY back-to-back clear (comboCount >= 2 means at least
@@ -1511,6 +1542,42 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    /**
+     * Update the drop speed based on current gravity level
+     * Called after lines are cleared and level changes
+     */
+    private void updateDropSpeed() {
+        if (timeLine == null)
+            return;
+
+        // Stop current timeline
+        timeLine.stop();
+
+        // Get new drop interval from level system
+        int dropIntervalMs = levelSystem.getDropIntervalMs();
+
+        // At 20G, pieces should instantly drop to lock position
+        // This is handled in the game logic, but we still need a minimal interval
+        if (levelSystem.is20G()) {
+            System.out.println("⚡ 20G MODE ACTIVATED - Instant drop!");
+        }
+
+        System.out.println("Drop speed updated: Level " + levelSystem.getLevel() +
+                ", Gravity " + levelSystem.getGravity() + "G" +
+                ", Interval " + dropIntervalMs + "ms");
+
+        // Create new timeline with updated speed
+        timeLine = new Timeline(new KeyFrame(
+                Duration.millis(dropIntervalMs),
+                ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
+        timeLine.setCycleCount(Timeline.INDEFINITE);
+
+        // Restart if not paused
+        if (!isPause.get()) {
+            timeLine.play();
+        }
+    }
+
     private void hardDrop(MoveEvent event) {
         if (!isPause.get()) {
             DownData downData = eventListener.onHardDropEvent(event);
@@ -1523,6 +1590,12 @@ public class GuiController implements Initializable {
                 linesCleared = downData.getClearRow().getLinesRemoved();
 
                 if (linesCleared > 0) {
+                    // Add lines to level system
+                    levelSystem.addLinesCleared(linesCleared);
+
+                    // Update drop speed based on new gravity
+                    updateDropSpeed();
+
                     // IF linesCleared > 0: Increment the combo
                     comboCount++;
                     // FIXED: Show COMBO for ANY back-to-back clear (comboCount >= 2 means at least
@@ -1612,12 +1685,9 @@ public class GuiController implements Initializable {
         if (scoreLabel != null) {
             scoreLabel.textProperty().bind(integerProperty.asString("%d"));
         }
-        if (levelLabel != null) {
-            levelLabel.setText("1");
-        }
-        if (linesLabel != null) {
-            linesLabel.setText("0");
-        }
+        // levelLabel and linesLabel are now bound to LevelSystem properties in
+        // initialize()
+        // Don't set text here to avoid "bound value cannot be set" error
 
         integerProperty.addListener((obs, oldVal, newVal) -> {
             currentScore = newVal.intValue();
@@ -1689,6 +1759,9 @@ public class GuiController implements Initializable {
         // Reset combo tracking on new game
         comboCount = 0;
 
+        // Reset level system
+        levelSystem.reset();
+
         // Reset rectangles to force rebuild in refreshBrick
         rectangles = null;
         ghostRectangles = null;
@@ -1710,20 +1783,28 @@ public class GuiController implements Initializable {
         eventListener.createNewGame();
 
         // FIXED: Recreate timeline to ensure it works properly for new game
+        // Use level system to get initial drop speed
         if (timeLine != null) {
             timeLine.stop();
         }
+        int initialDropInterval = levelSystem.getDropIntervalMs();
         timeLine = new Timeline(new KeyFrame(
-                Duration.millis(400),
+                Duration.millis(initialDropInterval),
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))));
         timeLine.setCycleCount(Timeline.INDEFINITE);
 
         gamePanel.requestFocus();
-        timeLine.play();
         isPause.setValue(false);
         isGameOver.setValue(false);
         currentScore = 0;
         updateOverlayLayer();
+
+        // Start timeline after a short delay to ensure game is fully initialized
+        javafx.application.Platform.runLater(() -> {
+            if (timeLine != null && !isPause.get()) {
+                timeLine.play();
+            }
+        });
     }
 
     public void pauseGame(ActionEvent actionEvent) {

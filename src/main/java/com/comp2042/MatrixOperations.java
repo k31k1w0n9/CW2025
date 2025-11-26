@@ -8,16 +8,17 @@ import java.util.stream.Collectors;
 
 public class MatrixOperations {
 
-    private MatrixOperations(){
+    private MatrixOperations() {
         // Private constructor to prevent instantiation
     }
 
     /**
      * Check if brick intersects with existing blocks or boundaries
+     * 
      * @param matrix The game board matrix (22x10)
-     * @param brick The brick shape matrix
-     * @param x Column position (0-9)
-     * @param y Row position (0-21)
+     * @param brick  The brick shape matrix
+     * @param x      Column position (0-9)
+     * @param y      Row position (0-21)
      * @return true if collision detected
      */
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
@@ -28,13 +29,13 @@ public class MatrixOperations {
                 if (brick[i][j] != 0) {
                     int targetX = x + j;
                     int targetY = y + i;
-                    
+
                     // CRITICAL: Check bounds first - out of bounds is a collision
                     if (checkOutOfBound(matrix, targetX, targetY)) {
                         System.out.println("Collision detected at (" + targetX + ", " + targetY + ") - OUT OF BOUNDS");
                         return true;
                     }
-                    
+
                     // Check if target cell is already filled
                     if (matrix[targetY][targetX] != 0) {
                         System.out.println("Collision detected at (" + targetX + ", " + targetY + ") - BLOCK EXISTS");
@@ -73,10 +74,11 @@ public class MatrixOperations {
 
     /**
      * Merge brick into the game board matrix
+     * 
      * @param filledFields The game board matrix
-     * @param brick The brick shape matrix
-     * @param x Column position
-     * @param y Row position (game coordinates 0-21)
+     * @param brick        The brick shape matrix
+     * @param x            Column position
+     * @param y            Row position (game coordinates 0-21)
      * @return Updated matrix with brick merged
      */
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
@@ -96,9 +98,9 @@ public class MatrixOperations {
                 // CRITICAL: Only merge if block is within valid matrix bounds
                 // Matrix has 22 rows (0-21), so targetY must be 0-21
                 // Matrix has 10 cols (0-9), so targetX must be 0-9
-                if (brick[i][j] != 0 && 
-                    targetX >= 0 && targetX < filledFields[0].length &&
-                    targetY >= 0 && targetY < filledFields.length) {
+                if (brick[i][j] != 0 &&
+                        targetX >= 0 && targetX < filledFields[0].length &&
+                        targetY >= 0 && targetY < filledFields.length) {
                     System.out.println("  Block at brick[" + i + "][" + j + "] " +
                             "→ GAME matrix[" + targetY + "][" + targetX + "]" +
                             " (display row: " + (targetY - 2) + ")");
@@ -116,6 +118,7 @@ public class MatrixOperations {
 
     /**
      * Count how many rows will be cleared (without actually clearing them)
+     * 
      * @param matrix The game board matrix
      * @return Number of rows that are completely filled
      */
@@ -138,6 +141,7 @@ public class MatrixOperations {
 
     /**
      * Check for complete rows and remove them
+     * 
      * @param matrix The game board matrix (22x10)
      * @return ClearRow object with cleared rows and new matrix
      */
@@ -147,8 +151,9 @@ public class MatrixOperations {
 
     /**
      * Check for complete rows and remove them with T-Spin and back-to-back support
-     * @param matrix The game board matrix (22x10)
-     * @param isTSpin Whether this clear was a T-Spin
+     * 
+     * @param matrix       The game board matrix (22x10)
+     * @param isTSpin      Whether this clear was a T-Spin
      * @param isBackToBack Whether this is a back-to-back clear
      * @return ClearRow object with cleared rows and new matrix
      */
@@ -174,7 +179,7 @@ public class MatrixOperations {
             }
 
             if (rowToClear) {
-                System.out.println("✓ GAME Row " + i + " (display row " + (i-2) + ") is FULL - will be cleared");
+                System.out.println("[OK] GAME Row " + i + " (display row " + (i - 2) + ") is FULL - will be cleared");
                 clearedRows.add(i);
             } else {
                 newRows.add(tmpRow);
@@ -194,7 +199,7 @@ public class MatrixOperations {
         // GDD Section 8.0: Scoring System
         int linesCleared = clearedRows.size();
         int scoreBonus = 0;
-        
+
         if (isTSpin) {
             // T-Spin scoring
             switch (linesCleared) {
@@ -232,10 +237,10 @@ public class MatrixOperations {
                     scoreBonus = 0;
             }
         }
-        
+
         // Back-to-Back bonus: 1.5x multiplier for Tetris or T-Spin
         if (isBackToBack && (linesCleared == 4 || isTSpin)) {
-            scoreBonus = (int)(scoreBonus * 1.5);
+            scoreBonus = (int) (scoreBonus * 1.5);
             System.out.println("Back-to-Back bonus applied: " + scoreBonus);
         }
 
@@ -249,10 +254,11 @@ public class MatrixOperations {
     /**
      * CRITICAL: Deep copy a list of 2D arrays
      * This method is used by Brick classes to get shape matrices
+     * 
      * @param list List of shape matrices
      * @return Deep copied list
      */
-    public static List<int[][]> deepCopyList(List<int[][]> list){
+    public static List<int[][]> deepCopyList(List<int[][]> list) {
         return list.stream()
                 .map(MatrixOperations::copy)
                 .collect(Collectors.toList());

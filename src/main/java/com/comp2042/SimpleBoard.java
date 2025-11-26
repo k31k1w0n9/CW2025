@@ -201,7 +201,7 @@ public class SimpleBoard implements Board {
                 (int) currentOffset.getY());
 
         if (collision) {
-            System.out.println("❌ COLLISION AT SPAWN - GAME OVER");
+            System.out.println("[GAME OVER] COLLISION AT SPAWN");
         }
 
         return collision;

@@ -15,6 +15,9 @@ public class RandomBrickGenerator implements BrickGenerator {
     private final List<Brick> currentBag = new ArrayList<>();
     private final Random random = new Random();
 
+    private final String[] standardNames = { "I Piece", "J Piece", "L Piece", "O Piece", "S Piece", "T Piece",
+            "Z Piece" };
+
     public RandomBrickGenerator() {
         // Fill initial bag and queue
         refillBag();
@@ -31,88 +34,113 @@ public class RandomBrickGenerator implements BrickGenerator {
 
     /**
      * Weighted Bag Randomizer.
-     * Each enabled piece is added to the bag 'spawnRate' times.
-     * This ensures that pieces with higher spawn rates appear more frequently
-     * in a predictable manner.
+     * 1. Always add one of each enabled Standard Piece.
+     * 2. Add Custom Pieces based on their spawn rate settings.
+     * 3. Shuffle the combined bag.
      */
     private void refillBag() {
         currentBag.clear();
         GameSettings settings = GameSettings.getInstance();
 
-        List<BrickEntry> enabledPieces = new ArrayList<>();
-
-        // Collect all enabled standard pieces
-        addPieceEntry(settings, "I Piece", enabledPieces);
-        addPieceEntry(settings, "J Piece", enabledPieces);
-        addPieceEntry(settings, "L Piece", enabledPieces);
-        addPieceEntry(settings, "O Piece", enabledPieces);
-        addPieceEntry(settings, "S Piece", enabledPieces);
-        addPieceEntry(settings, "T Piece", enabledPieces);
-        addPieceEntry(settings, "Z Piece", enabledPieces);
-
-        // Collect all enabled custom pieces
-        Map<String, boolean[][]> customPieces = settings.getAllCustomPieces();
-        for (Map.Entry<String, boolean[][]> entry : customPieces.entrySet()) {
-            String name = entry.getKey();
-
-            // Skip standard pieces as they are added explicitly above
-            if (settings.isStandardPiece(name)) {
-                continue;
-            }
-
-            boolean[][] design = entry.getValue();
-
-            // Only add non-empty designs
-            if (!isEmptyDesign(design)) {
-                addPieceEntry(settings, name, enabledPieces);
+        // 1. Add ONE of each Enabled Standard Piece (Standard 7-Bag Rule)
+        for (String name : standardNames) {
+            // Only add if the user hasn't disabled this standard piece
+            if (isPieceEnabled(settings, name)) {
+                currentBag.add(createStandardBrick(name));
             }
         }
 
-        // If no pieces are enabled, add at least one standard piece to prevent crash
-        if (enabledPieces.isEmpty()) {
-            currentBag.add(createBrick("I Piece", settings));
-        } else {
-            // Add each piece to the bag 'spawnRate' times
-            for (BrickEntry entry : enabledPieces) {
-                // Ensure at least 1 copy if rate > 0 (though addPieceEntry checks > 0)
-                int count = Math.max(1, entry.spawnRate);
-                for (int i = 0; i < count; i++) {
-                    currentBag.add(createBrick(entry.name, settings));
+        // 2. Add Custom Pieces based on Spawn Rate
+        Map<String, boolean[][]> customPieces = settings.getAllCustomPieces();
+
+        for (Map.Entry<String, boolean[][]> entry : customPieces.entrySet()) {
+            String name = entry.getKey();
+
+            // Skip standard pieces in this loop (they are handled in Step 1)
+            if (isStandardPiece(name)) {
+                continue;
+            }
+
+            // Only proceed if this custom piece is enabled
+            if (isPieceEnabled(settings, name)) {
+                boolean[][] design = entry.getValue();
+
+                // Skip empty designs (all false) to prevent "phantom" bricks
+                if (isEmptyDesign(design)) {
+                    continue;
+                }
+
+                GameSettings.PieceSettings pieceSettings = settings.getPieceSettings(name);
+
+                int spawnRate = pieceSettings != null ? pieceSettings.spawnRate : 5;
+                int id = pieceSettings != null ? pieceSettings.id : 8;
+
+                // LOGIC: How many times should a custom piece appear per "Bag"?
+                // Rate 0: Never (0 copies)
+                // Rate 1-3: 33% chance (handled by adding 1 copy with probability)
+                // Rate 4-6: 1 copy (Standard frequency)
+                // Rate 7-9: 2 copies (Double frequency)
+                // Rate 10: 3 copies (High frequency)
+
+                int copiesToAdd = 0;
+
+                if (spawnRate == 0) {
+                    copiesToAdd = 0;
+                } else if (spawnRate <= 3) {
+                    // Low spawn rate: Only add it to THIS bag 33% of the time
+                    if (random.nextDouble() < 0.33)
+                        copiesToAdd = 1;
+                } else if (spawnRate <= 6) {
+                    copiesToAdd = 1; // Same frequency as a standard piece
+                } else if (spawnRate <= 9) {
+                    copiesToAdd = 2;
+                } else {
+                    copiesToAdd = 3;
+                }
+
+                for (int k = 0; k < copiesToAdd; k++) {
+                    currentBag.add(new CustomBrick(design, id));
                 }
             }
         }
 
+        // Safety check: If user disabled EVERYTHING or bag is empty, add a default
+        // I-Piece
+        if (currentBag.isEmpty()) {
+            currentBag.add(new IBrick());
+        }
+
+        // 3. Shuffle the final bag
         Collections.shuffle(currentBag, random);
     }
 
-    /**
-     * Helper class to store piece information before creating brick instances
-     */
-    private static class BrickEntry {
-        String name;
-        int spawnRate;
-
-        BrickEntry(String name, int spawnRate) {
-            this.name = name;
-            this.spawnRate = spawnRate;
+    private boolean isEmptyDesign(boolean[][] design) {
+        if (design == null)
+            return true;
+        for (boolean[] row : design) {
+            for (boolean cell : row) {
+                if (cell)
+                    return false;
+            }
         }
+        return true;
     }
 
-    /**
-     * Adds piece to the list if enabled in game
-     */
-    private void addPieceEntry(GameSettings settings, String name, List<BrickEntry> list) {
+    private boolean isStandardPiece(String name) {
+        for (String s : standardNames) {
+            if (s.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isPieceEnabled(GameSettings settings, String name) {
         GameSettings.PieceSettings ps = settings.getPieceSettings(name);
-        if (ps != null && ps.enableInGame && ps.spawnRate > 0) {
-            list.add(new BrickEntry(name, ps.spawnRate));
-        }
+        return ps != null && ps.enableInGame;
     }
 
-    /**
-     * Creates a new brick instance based on piece name
-     * Always creates NEW instances to avoid reference issues
-     */
-    private Brick createBrick(String name, GameSettings settings) {
+    private Brick createStandardBrick(String name) {
         switch (name) {
             case "I Piece":
                 return new IBrick();
@@ -129,32 +157,8 @@ public class RandomBrickGenerator implements BrickGenerator {
             case "Z Piece":
                 return new ZBrick();
             default:
-                // Custom piece
-                boolean[][] design = settings.getCustomPiece(name);
-                GameSettings.PieceSettings ps = settings.getPieceSettings(name);
-                if (design != null && ps != null) {
-                    return new CustomBrick(design, ps.id);
-                }
-                // Fallback to I piece if something goes wrong
                 return new IBrick();
         }
-    }
-
-    /**
-     * Checks if a design is empty (no filled cells)
-     */
-    private boolean isEmptyDesign(boolean[][] design) {
-        if (design == null)
-            return true;
-        for (boolean[] row : design) {
-            if (row != null) {
-                for (boolean cell : row) {
-                    if (cell)
-                        return false;
-                }
-            }
-        }
-        return true;
     }
 
     // Ensures we always have at least 2 pieces in the queue

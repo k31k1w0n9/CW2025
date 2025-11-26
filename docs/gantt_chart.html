@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEGP Gantt Chart</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333;
+            --grid-line-color: #e0e0e0;
+            --header-bg: #f5f7fa;
+            --phase-bg: #eef2f5;
+            --bar-purple: #d1c4e9;
+            --bar-purple-dark: #7e57c2;
+            --bar-pink: #f8bbd0;
+            --bar-red: #ff5252;
+            --bar-yellow: #fff9c4;
+            --bar-yellow-dark: #fbc02d;
+            --bar-green: #c8e6c9;
+            --bar-green-dark: #4caf50;
+            --bar-blue: #bbdefb;
+            --bar-blue-dark: #2196f3;
+            --bar-orange: #ff9800;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .gantt-container {
+            overflow-x: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            background: white;
+            position: relative;
+        }
+
+        .gantt-header {
+            display: grid;
+            grid-template-columns: 250px 100px repeat(60, 30px);
+            /* Adjust based on days */
+            background-color: var(--header-bg);
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .gantt-row {
+            display: grid;
+            grid-template-columns: 250px 100px repeat(60, 30px);
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+            height: 40px;
+        }
+
+        .gantt-row:hover {
+            background-color: #fafafa;
+        }
+
+        .phase-header {
+            background-color: var(--phase-bg);
+            font-weight: 600;
+            padding: 10px 20px;
+            grid-column: 1 / -1;
+            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+        .phase-header:first-child {
+            margin-top: 0;
+        }
+
+        .task-name {
+            padding: 0 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-right: 1px solid #eee;
+            background: white;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .assignee {
+            padding: 0 10px;
+            font-size: 12px;
+            color: #666;
+            border-right: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-header {
+            font-size: 10px;
+            text-align: center;
+            border-right: 1px solid #eee;
+            padding: 5px 0;
+            color: #666;
+        }
+
+        .month-header {
+            grid-column: 1 / -1;
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .month-label {
+            padding: 5px 10px;
+            font-weight: bold;
+            font-size: 12px;
+            border-right: 1px solid #eee;
+        }
+
+        .grid-cell {
+            border-right: 1px solid #f5f5f5;
+            height: 100%;
+        }
+
+        /* Bars */
+        .bar {
+            height: 20px;
+            border-radius: 4px;
+            position: absolute;
+            top: 10px;
+            opacity: 0.9;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .bar-purple {
+            background-color: var(--bar-purple);
+            border-left: 4px solid var(--bar-purple-dark);
+        }
+
+        .bar-pink {
+            background-color: var(--bar-pink);
+            border-left: 4px solid var(--bar-red);
+        }
+
+        .bar-yellow {
+            background-color: var(--bar-yellow);
+            border-left: 4px solid var(--bar-yellow-dark);
+        }
+
+        .bar-green {
+            background-color: var(--bar-green);
+            border-left: 4px solid var(--bar-green-dark);
+        }
+
+        .bar-red {
+            background-color: var(--bar-red);
+        }
+
+        /* Solid red for interim */
+
+        /* Milestones */
+        .milestone {
+            width: 14px;
+            height: 14px;
+            transform: rotate(45deg);
+            position: absolute;
+            top: 13px;
+            margin-left: -7px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .milestone-red {
+            background-color: var(--bar-red);
+        }
+
+        .milestone-yellow {
+            background-color: var(--bar-yellow-dark);
+        }
+
+        .milestone-blue {
+            background-color: var(--bar-blue-dark);
+        }
+
+        .milestone-orange {
+            background-color: var(--bar-orange);
+        }
+
+        .today-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: red;
+            z-index: 4;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>SEGP Project Timeline</h1>
+    <div style="margin-bottom: 10px; color: #666;">
+        Current Date: <span id="current-date"></span>
+    </div>
+
+    <div class="gantt-container" id="gantt">
+        <!-- Generated by JS -->
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-purple)"></div> Discussions
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-blue-dark)"></div> Optimizations
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-green)"></div> Task Implementations
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-yellow)"></div> Research & Attempts
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-orange)"></div> Integrations
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: var(--bar-red)"></div> Documentations
+        </div>
+    </div>
+
+    <script>
+        const tasks = [
+            { phase: "PHASE 1: Setup & Planning" },
+            { name: "First internal meeting", start: "2025-10-27", end: "2025-10-28", type: "bar", color: "purple", assignee: "All" },
+            { name: "Project Description progress", start: "2025-10-27", end: "2025-11-05", type: "bar", color: "pink", assignee: "All" },
+            { name: "Project Description submission", start: "2025-11-05", type: "milestone", color: "red", assignee: "Abdullah" },
+            { name: "Full Ethics Form progress", start: "2025-11-02", end: "2025-11-10", type: "bar", color: "pink", assignee: "All" },
+            { name: "Ethics Form submission", start: "2025-11-10", type: "milestone", color: "red", assignee: "Abdullah" },
+            { name: "Full Ethics Form submission", start: "2025-11-17", type: "milestone", color: "red", assignee: "Abdullah" },
+
+            { phase: "PHASE 2: Initial Development" },
+            { name: "Technology stack research & learning", start: "2025-10-23", end: "2025-11-14", type: "bar", color: "yellow", assignee: "All" },
+            { name: "1st YOLO attempt", start: "2025-11-07", type: "milestone", color: "yellow", assignee: "Dhiren" },
+            { name: "DeepStream research & setup", start: "2025-10-23", end: "2025-11-26", type: "bar", color: "yellow", assignee: "Keiki" },
+
+            { phase: "PHASE 3: Core Implementation" },
+            { name: "Confirm task distribution", start: "2025-10-27", end: "2025-11-02", type: "bar", color: "purple", assignee: "All" },
+            { name: "Task 2.1 implementation", start: "2025-11-14", end: "2025-11-16", type: "bar", color: "green", assignee: "Abdullah" },
+            { name: "DeepStream 1st test run", start: "2025-11-16", type: "milestone", color: "blue", assignee: "Keiki" },
+            { name: "Task 2.2 Implementation", start: "2025-11-16", end: "2025-11-24", type: "bar", color: "green", assignee: "Dhiren" },
+            { name: "Task 2.3 Implementation", start: "2025-11-16", end: "2025-11-26", type: "bar", color: "green", assignee: "Alei, Belal" },
+            { name: "Task 2.1, 2.2 & 2.3 Integration", start: "2025-11-29", type: "milestone", color: "orange", assignee: "Belal" },
+            { name: "Task 2.4 Implementation", start: "2025-12-01", end: "2025-12-10", type: "bar", color: "green", assignee: "Abdullah" },
+            { name: "Task 2.5 Implementation", start: "2025-12-01", end: "2025-12-10", type: "bar", color: "green", assignee: "Keiki" },
+            { name: "Task 2.6 Implementation", start: "2025-12-01", end: "2025-12-10", type: "bar", color: "green", assignee: "Alei" },
+
+            { phase: "PHASE 4: Interface & Dataset Review" },
+            { name: "1st GUI attempt", start: "2025-11-05", end: "2025-11-20", type: "bar", color: "yellow", assignee: "Dhiren" },
+            { name: "Dataset insufficient discussion", start: "2025-11-20", end: "2025-11-22", type: "bar", color: "purple", assignee: "All" },
+
+            { phase: "PHASE 5: Optimization & Progress Review" },
+            { name: "Interim report progress", start: "2025-11-12", end: "2025-12-12", type: "bar", color: "red", assignee: "All" },
+            { name: "DeepStream 2nd run", start: "2025-12-05", type: "milestone", color: "blue", assignee: "Keiki" },
+            { name: "DeepStream 3rd+ runs (conflicting)", start: "2025-12-08", type: "milestone", color: "blue", assignee: "Keiki" },
+            { name: "Jetson cancellation & dataset constraints", start: "2025-12-10", end: "2025-12-12", type: "bar", color: "purple", assignee: "All" }
+        ];
+
+        const startDate = new Date("2025-10-23");
+        const endDate = new Date("2025-12-16");
+        const dayWidth = 30;
+        const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+        function renderGantt() {
+            const container = document.getElementById('gantt');
+
+            // 1. Header
+            let headerHTML = `<div class="gantt-header">
+                <div style="padding: 10px; font-weight: bold; border-right: 1px solid #eee;">Task</div>
+                <div style="padding: 10px; font-weight: bold; border-right: 1px solid #eee;">Assignee</div>`;
+
+            for (let i = 0; i <= totalDays; i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                headerHTML += `<div class="day-header">${d.getDate()}</div>`;
+            }
+            headerHTML += `</div>`;
+            container.innerHTML = headerHTML;
+
+            // 2. Rows
+            tasks.forEach(task => {
+                if (task.phase) {
+                    const phaseRow = document.createElement('div');
+                    phaseRow.className = 'phase-header';
+                    phaseRow.textContent = task.phase;
+                    container.appendChild(phaseRow);
+                    return;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'gantt-row';
+                row.style.gridTemplateColumns = `250px 100px repeat(${totalDays + 1}, ${dayWidth}px)`;
+
+                // Task Name
+                const nameCell = document.createElement('div');
+                nameCell.className = 'task-name';
+                nameCell.textContent = task.name;
+                nameCell.title = task.name;
+                row.appendChild(nameCell);
+
+                // Assignee
+                const assigneeCell = document.createElement('div');
+                assigneeCell.className = 'assignee';
+                assigneeCell.textContent = task.assignee || "";
+                row.appendChild(assigneeCell);
+
+                // Grid Cells
+                for (let i = 0; i <= totalDays; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    row.appendChild(cell);
+                }
+
+                // Bar / Milestone
+                const taskStart = new Date(task.start);
+                const startDiff = Math.ceil((taskStart - startDate) / (1000 * 60 * 60 * 24));
+
+                if (startDiff >= 0) {
+                    const element = document.createElement('div');
+                    const leftPos = 350 + (startDiff * dayWidth); // 350 = 250 (name) + 100 (assignee)
+
+                    if (task.type === 'bar') {
+                        const taskEnd = new Date(task.end);
+                        const duration = Math.ceil((taskEnd - taskStart) / (1000 * 60 * 60 * 24));
+                        element.className = `bar bar-${task.color}`;
+                        element.style.left = `${leftPos + 2}px`;
+                        element.style.width = `${(duration * dayWidth) - 4}px`;
+                    } else {
+                        element.className = `milestone milestone-${task.color}`;
+                        element.style.left = `${leftPos + (dayWidth / 2)}px`;
+                    }
+                    row.appendChild(element);
+                }
+
+                container.appendChild(row);
+            });
+
+            // Today Line
+            const today = new Date();
+            // For demo, let's assume today is 2025-11-18 as per user context "now its 18/11/2025"
+            // Or use actual date? User said "now its 18/11/2025".
+            const demoToday = new Date("2025-11-18");
+            const todayDiff = Math.ceil((demoToday - startDate) / (1000 * 60 * 60 * 24));
+            if (todayDiff >= 0 && todayDiff <= totalDays) {
+                const line = document.createElement('div');
+                line.className = 'today-line';
+                line.style.left = `${350 + (todayDiff * dayWidth) + (dayWidth / 2)}px`;
+                line.style.height = `${container.scrollHeight}px`;
+                container.appendChild(line);
+            }
+
+            document.getElementById('current-date').textContent = demoToday.toDateString();
+        }
+
+        renderGantt();
+    </script>
+</body>
+
+</html>
