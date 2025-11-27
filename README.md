@@ -21,7 +21,7 @@
 - [x] Hard Drop
 - [x] Hold Piece
 - [x] Twists (Spin Moves)
-- [ ] Levels & Speed
+- [x] Levels & Speed
 
 ## Visual & UI Features
 - [x] Game Over Panel
@@ -35,7 +35,7 @@
 - [ ] Sound Effects & Background Music
 
 ## Extra Features
-- [ ] Brick Customization
+- [x] Brick Customization
 
 ## Documentation
 - Javadoc
@@ -43,4 +43,4 @@
 - This README.md
 
 ---
-*Last updated: 24/11/2025 02:25:00*
+*Last updated: 27/11/2025 01:30:00*
