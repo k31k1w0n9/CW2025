@@ -21,39 +21,61 @@ public class NotificationPanel extends BorderPane {
     private Label scoreLabel;
 
     public NotificationPanel(String text) {
-        setMinHeight(200);
-        setMinWidth(220);
+        // Count lines to adjust sizing
+        int lineCount = text.split("\\n").length;
+
+        // Adjust dimensions based on line count
+        if (lineCount <= 2) {
+            setMinHeight(200);
+            setMinWidth(220);
+        } else if (lineCount == 3) {
+            setMinHeight(180);
+            setMinWidth(240);
+        } else {
+            // 4+ lines (e.g., TETRIS + BACK-TO-BACK + COMBO)
+            setMinHeight(160);
+            setMinWidth(260);
+        }
 
         // Load custom font
         Font customFont = null;
         try {
             InputStream fontStream = getClass().getResourceAsStream("/BoutiqueBitmap9x9_Bold_1.9.ttf");
             if (fontStream != null) {
-                customFont = Font.loadFont(fontStream, 48);
+                // Adjust font size based on line count
+                int fontSize;
+                if (lineCount <= 2) {
+                    fontSize = 48;
+                } else if (lineCount == 3) {
+                    fontSize = 38;
+                } else {
+                    fontSize = 32; // Smaller for 4+ lines
+                }
+                customFont = Font.loadFont(fontStream, fontSize);
             }
         } catch (Exception e) {
             System.err.println("Could not load custom font for NotificationPanel");
         }
         if (customFont == null) {
-            customFont = Font.font("Arial", FontWeight.BOLD, 48);
+            int fontSize = lineCount <= 2 ? 48 : (lineCount == 3 ? 38 : 32);
+            customFont = Font.font("Arial", FontWeight.BOLD, fontSize);
         }
 
         // Create score label
         scoreLabel = new Label(text);
-        scoreLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);  // Center multi-line text
+        scoreLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER); // Center multi-line text
 
-        // FIXED: Use custom pixel font
+        // Use custom pixel font
         scoreLabel.setFont(customFont);
         scoreLabel.setTextFill(Color.WHITE);
-
 
         DropShadow dropShadow = new DropShadow();
         dropShadow.setColor(Color.YELLOW);
         dropShadow.setRadius(25);
-        dropShadow.setSpread(0.8);
+        dropShadow.setSpread(0.1);
 
-        Glow glow = new Glow(0.8);
-        dropShadow.setInput(glow);  // Combine both effects
+        Glow glow = new Glow(0.1);
+        dropShadow.setInput(glow); // Combine both effects
 
         scoreLabel.setEffect(dropShadow);
 
@@ -90,7 +112,7 @@ public class NotificationPanel extends BorderPane {
 
         // Phase 4: Float up and fade out
         TranslateTransition floatUp = new TranslateTransition(Duration.millis(800), this);
-        floatUp.setToY(this.getLayoutY() - 60);  // Float up more
+        floatUp.setToY(this.getLayoutY() - 60); // Float up more
 
         FadeTransition fadeOut = new FadeTransition(Duration.millis(800), this);
         fadeOut.setToValue(0);
@@ -102,8 +124,7 @@ public class NotificationPanel extends BorderPane {
                 popIn,
                 scaleNormal,
                 hold,
-                floatAndFade
-        );
+                floatAndFade);
 
         fullSequence.setOnFinished(new EventHandler<ActionEvent>() {
             @Override

@@ -22,6 +22,21 @@ public class MatrixOperations {
      * @return true if collision detected
      */
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
+        return intersect(matrix, brick, x, y, false);
+    }
+
+    /**
+     * Check if brick intersects with existing blocks or boundaries
+     * 
+     * @param matrix The game board matrix (22x10)
+     * @param brick  The brick shape matrix
+     * @param x      Column position (0-9)
+     * @param y      Row position (0-21)
+     * @param silent If true, suppress collision logging (for ghost piece
+     *               calculations)
+     * @return true if collision detected
+     */
+    public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y, boolean silent) {
         // FIXED: Check collision for all blocks in the brick shape
         // This prevents "piled-up" overlapping pieces
         for (int i = 0; i < brick.length; i++) {
@@ -32,13 +47,19 @@ public class MatrixOperations {
 
                     // CRITICAL: Check bounds first - out of bounds is a collision
                     if (checkOutOfBound(matrix, targetX, targetY)) {
-                        System.out.println("Collision detected at (" + targetX + ", " + targetY + ") - OUT OF BOUNDS");
+                        if (!silent) {
+                            System.out.println(
+                                    "Collision detected at (" + targetX + ", " + targetY + ") - OUT OF BOUNDS");
+                        }
                         return true;
                     }
 
                     // Check if target cell is already filled
                     if (matrix[targetY][targetX] != 0) {
-                        System.out.println("Collision detected at (" + targetX + ", " + targetY + ") - BLOCK EXISTS");
+                        if (!silent) {
+                            System.out
+                                    .println("Collision detected at (" + targetX + ", " + targetY + ") - BLOCK EXISTS");
+                        }
                         return true;
                     }
                 }
@@ -159,7 +180,7 @@ public class MatrixOperations {
      */
     public static ClearRow checkRemoving(final int[][] matrix, boolean isTSpin, boolean isBackToBack) {
         System.out.println("\n=== CHECK LINE CLEARING ===");
-        System.out.println("Matrix size: " + matrix.length + " rows x " + matrix[0].length + " cols");
+        System.out.println("Matrix size: " + matrix.length + " rows x" + matrix[0].length + " cols");
         System.out.println("T-Spin: " + isTSpin + ", Back-to-Back: " + isBackToBack);
 
         int[][] tmp = new int[matrix.length][matrix[0].length];

@@ -7,7 +7,12 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -65,6 +70,8 @@ public class GuiController implements Initializable {
     private Label linesLabel;
     @FXML
     private Label highScoreLabel;
+    @FXML
+    private Label levelUpLabel;
 
     @FXML
     private Group groupNotification;
@@ -100,6 +107,8 @@ public class GuiController implements Initializable {
     @FXML
     private StackPane controlsContainer;
     @FXML
+    private StackPane settingsContainer;
+    @FXML
     private StackPane customizeContainer;
     @FXML
     private StackPane overlayLayer;
@@ -116,6 +125,8 @@ public class GuiController implements Initializable {
     private Button pauseButton;
 
     private CustomizePanel customizePanel;
+    private SettingsPanel settingsPanel;
+    private ControlsPanel controlsPanel;
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
     private Rectangle[][] rectangles;
@@ -204,6 +215,9 @@ public class GuiController implements Initializable {
         keyBindings = new KeyBindings();
         levelSystem = new LevelSystem();
 
+        // Start background music
+        SoundManager.getInstance().playMusic();
+
         // Setup board dimensions
         setupBoardDimensions();
 
@@ -262,6 +276,7 @@ public class GuiController implements Initializable {
         setupKeyHandlers();
         setupPauseMenu();
         setupControlsPanel();
+        setupSettingsPanel();
         setupCustomizePanel();
         setupGameOverPanel();
         setupNameInputDialog();
@@ -275,8 +290,8 @@ public class GuiController implements Initializable {
 
             mainMenuPanel.setStartGameAction(this::startNewGame);
 
-            mainMenuPanel.setControlsAction(this::showControlsFromMainMenu);
-            System.out.println("Controls action set");
+            mainMenuPanel.setSettingsAction(this::showSettings);
+            System.out.println("Settings action set");
 
             mainMenuPanel.setCustomizedAction(this::showCustomizeFromMainMenu);
             System.out.println("Customize action set");
@@ -288,6 +303,23 @@ public class GuiController implements Initializable {
         if (gamePanel != null) {
             gamePanel.setFocusTraversable(true);
             gamePanel.requestFocus();
+        }
+
+        // Initialize Level Up Notification Label
+        if (levelUpLabel == null) {
+            levelUpLabel = new Label("LEVEL UP!");
+        }
+        levelUpLabel.setVisible(false);
+        // Style it
+        levelUpLabel.setStyle(
+                "-fx-font-family: '" + (customFontBold != null ? customFontBold.getFamily() : "Arial") + "';" +
+                        "-fx-font-size: 48px;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-effect: dropshadow(gaussian, #DD0584, 0, 0, 0, 0);" // Start with no glow
+        );
+
+        if (overlayLayer != null && !overlayLayer.getChildren().contains(levelUpLabel)) {
+            overlayLayer.getChildren().add(levelUpLabel);
         }
 
         System.out.println("GuiController initialization complete");
@@ -446,22 +478,26 @@ public class GuiController implements Initializable {
             if (!isPause.get() && !isGameOver.get()) {
                 if (keyBindings.isKeyBound("MOVE_LEFT", code)) {
                     refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+                    SoundManager.getInstance().playSound(SoundManager.SFX_MOVE);
                     keyEvent.consume();
                     return;
                 }
                 if (keyBindings.isKeyBound("MOVE_RIGHT", code)) {
                     refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+                    SoundManager.getInstance().playSound(SoundManager.SFX_MOVE);
                     keyEvent.consume();
                     return;
                 }
                 if (keyBindings.isKeyBound("ROTATE", code) || keyBindings.isKeyBound("ROTATE_LEFT", code)
                         || keyBindings.isKeyBound("ROTATE_RIGHT", code)) {
                     refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                    SoundManager.getInstance().playSound(SoundManager.SFX_ROTATE);
                     keyEvent.consume();
                     return;
                 }
                 if (keyBindings.isKeyBound("SOFT_DROP", code)) {
                     moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+                    SoundManager.getInstance().playSound(SoundManager.SFX_MOVE);
                     keyEvent.consume();
                     return;
                 }
@@ -472,6 +508,7 @@ public class GuiController implements Initializable {
                 }
                 if (keyBindings.isKeyBound("HOLD", code)) {
                     refreshBrick(eventListener.onHoldEvent(new MoveEvent(EventType.HOLD, EventSource.USER)));
+                    SoundManager.getInstance().playSound(SoundManager.SFX_HOLD);
                     keyEvent.consume();
                     return;
                 }
@@ -479,6 +516,7 @@ public class GuiController implements Initializable {
 
             if (keyBindings.isKeyBound("PAUSE", code)) {
                 togglePause();
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
                 keyEvent.consume();
                 return;
             }
@@ -497,6 +535,7 @@ public class GuiController implements Initializable {
         }
 
         pauseMenuPanel.getResumeButton().setOnAction(e -> togglePause());
+        pauseMenuPanel.getSettingsButton().setOnAction(e -> showSettings());
         pauseMenuPanel.getMainMenuButton().setOnAction(e -> returnToMainMenu());
         pauseMenuPanel.getControlsButton().setOnAction(e -> showControls());
         pauseMenuPanel.getQuitButton().setOnAction(e -> System.exit(0));
@@ -505,34 +544,53 @@ public class GuiController implements Initializable {
     private void setupControlsPanel() {
         System.out.println("Setting up controls panel...");
 
+        // Initialize the controls panel field
+        controlsPanel = new ControlsPanel(keyBindings);
+        controlsPanel.setMaxSize(600, 660);
+        controlsPanel.setMinSize(600, 660);
+        controlsPanel.setPrefSize(600, 660);
+
+        // We don't add it to controlsContainer anymore as it's embedded in Settings
         if (controlsContainer != null) {
-            System.out.println("controlsContainer exists");
-            controlsContainer.getChildren().clear();
-
-            ControlsPanel customControlsPanel = new ControlsPanel(keyBindings);
-            System.out.println("ControlsPanel created");
-
-            customControlsPanel.setMaxSize(600, 660);
-            customControlsPanel.setMinSize(600, 660);
-            customControlsPanel.setPrefSize(600, 660);
-            System.out.println("ControlsPanel size set: 600x660");
-
-            controlsContainer.getChildren().add(customControlsPanel);
-            System.out.println("ControlsPanel added to container");
-            System.out.println("Children count: " + controlsContainer.getChildren().size());
-
             controlsContainer.setVisible(false);
             controlsContainer.setPickOnBounds(false);
             controlsContainer.setMouseTransparent(true);
-            System.out.println("ControlsContainer hidden initially");
+        }
 
-            customControlsPanel.getDoneButton().setOnAction(e -> {
-                System.out.println("Controls Done button clicked");
-                hideControls();
+        System.out.println("Controls panel setup complete");
+    }
+
+    private void setupSettingsPanel() {
+        System.out.println("Setting up settings panel...");
+
+        if (settingsContainer != null) {
+            System.out.println("settingsContainer exists");
+            settingsContainer.getChildren().clear();
+
+            settingsPanel = new SettingsPanel(controlsPanel);
+            System.out.println("SettingsPanel created");
+
+            settingsPanel.setMaxSize(700, 700);
+            settingsPanel.setMinSize(700, 700);
+            settingsPanel.setPrefSize(700, 700);
+            System.out.println("SettingsPanel size set: 700x700");
+
+            settingsContainer.getChildren().add(settingsPanel);
+            System.out.println("SettingsPanel added to container");
+
+            settingsContainer.setVisible(false);
+            settingsContainer.setPickOnBounds(false);
+            settingsContainer.setMouseTransparent(true);
+            System.out.println("SettingsContainer hidden initially");
+
+            settingsPanel.getDoneButton().setOnAction(e -> {
+                System.out.println("Settings Done button clicked");
+                hideSettings();
             });
-            System.out.println("Done button action set");
+
+            System.out.println("Settings panel setup complete");
         } else {
-            System.err.println("[ERROR] controlsContainer is NULL!");
+            System.err.println("[ERROR] settingsContainer is NULL!");
         }
     }
 
@@ -687,71 +745,7 @@ public class GuiController implements Initializable {
         // Delegate to the central newGame method to ensure consistent initialization
         // This ensures timeline is started, rectangles are reset, and UI is cleared
         newGame(null);
-    }
-
-    private void showControlsFromMainMenu() {
-        System.out.println("\n=== SHOW CONTROLS FROM MAIN MENU ===");
-
-        if (mainMenuContainer != null) {
-            mainMenuContainer.setVisible(false);
-            System.out.println("Main menu hidden");
-        }
-
-        if (gameContainer != null) {
-            gameContainer.setVisible(false);
-            System.out.println("Game container hidden");
-        }
-
-        // FIXED: controlsContainer is now at root level, so it can be shown
-        // independently
-        if (controlsContainer != null) {
-            System.out.println("controlsContainer exists");
-            System.out.println("Children count: " + controlsContainer.getChildren().size());
-
-            controlsContainer.setVisible(true);
-            controlsContainer.setPickOnBounds(true);
-            controlsContainer.setMouseTransparent(false);
-            controlsContainer.toFront(); // Ensure it's on top
-            System.out.println("controlsContainer made VISIBLE and INTERACTIVE");
-
-            System.out.println("Container properties:");
-            System.out.println("  Visible: " + controlsContainer.isVisible());
-            System.out.println("  MouseTransparent: " + controlsContainer.isMouseTransparent());
-            System.out.println("  PickOnBounds: " + controlsContainer.pickOnBoundsProperty().get());
-
-            if (!controlsContainer.getChildren().isEmpty()) {
-                ControlsPanel panel = (ControlsPanel) controlsContainer.getChildren().get(0);
-                System.out.println("Got ControlsPanel from children");
-
-                panel.setVisible(true);
-                System.out.println("ControlsPanel set visible");
-
-                panel.getDoneButton().setOnAction(e -> {
-                    System.out.println("Done button clicked - returning to main menu");
-                    controlsContainer.setVisible(false);
-                    controlsContainer.setPickOnBounds(false);
-                    controlsContainer.setMouseTransparent(true);
-
-                    if (gameContainer != null)
-                        gameContainer.setVisible(false);
-                    if (mainMenuContainer != null)
-                        mainMenuContainer.setVisible(true);
-
-                    updateOverlayLayer();
-                });
-                System.out.println("Done button action configured");
-
-                panel.requestFocus();
-                System.out.println("Focus requested");
-            } else {
-                System.err.println("[ERROR] controlsContainer has NO children!");
-            }
-        } else {
-            System.err.println("[ERROR] controlsContainer is NULL!");
-        }
-
-        updateOverlayLayer();
-        System.out.println("=== SHOW CONTROLS COMPLETE ===\n");
+        SoundManager.getInstance().playSound(SoundManager.SFX_GAME_START);
     }
 
     private void showCustomizeFromMainMenu() {
@@ -972,7 +966,18 @@ public class GuiController implements Initializable {
     }
 
     private void showControls() {
-        if (controlsContainer != null) {
+        showSettings();
+        if (settingsPanel != null) {
+            settingsPanel.selectTab("CONTROLS");
+        }
+    }
+
+    private void hideControls() {
+        hideSettings();
+    }
+
+    private void showSettings() {
+        if (settingsContainer != null) {
             // Hide pause menu
             pauseMenuPanel.setVisible(false);
             if (pauseContainer != null) {
@@ -981,26 +986,24 @@ public class GuiController implements Initializable {
                 pauseContainer.setMouseTransparent(true);
             }
 
-            // Show controls - FIX visibility properly
-            controlsContainer.setVisible(true);
-            controlsContainer.setPickOnBounds(true);
-            controlsContainer.setMouseTransparent(false);
+            // Show settings
+            settingsContainer.setVisible(true);
+            settingsContainer.setPickOnBounds(true);
+            settingsContainer.setMouseTransparent(false);
 
-            if (!controlsContainer.getChildren().isEmpty()) {
-                ControlsPanel panel = (ControlsPanel) controlsContainer.getChildren().get(0);
-                panel.setVisible(true);
-                panel.getDoneButton().setOnAction(e -> hideControls());
-                panel.requestFocus();
+            if (settingsPanel != null) {
+                settingsPanel.setVisible(true);
+                settingsPanel.requestFocus();
             }
         }
         updateOverlayLayer();
     }
 
-    private void hideControls() {
-        if (controlsContainer != null) {
-            controlsContainer.setVisible(false);
-            controlsContainer.setPickOnBounds(false);
-            controlsContainer.setMouseTransparent(true);
+    private void hideSettings() {
+        if (settingsContainer != null) {
+            settingsContainer.setVisible(false);
+            settingsContainer.setPickOnBounds(false);
+            settingsContainer.setMouseTransparent(true);
 
             // Show pause menu again if game is paused
             if (isPause.get()) {
@@ -1012,8 +1015,26 @@ public class GuiController implements Initializable {
                 }
             }
         }
+        refreshGridLines();
         updateOverlayLayer();
         gamePanel.requestFocus();
+    }
+
+    private void refreshGridLines() {
+        if (displayMatrix == null)
+            return;
+        boolean gridEnabled = SettingsManager.getInstance().isGridLinesEnabled();
+        for (int i = 0; i < displayMatrix.length; i++) {
+            for (int j = 0; j < displayMatrix[i].length; j++) {
+                if (displayMatrix[i][j] != null) {
+                    if (gridEnabled) {
+                        displayMatrix[i][j].setStroke(Color.rgb(50, 70, 100, 0.5));
+                    } else {
+                        displayMatrix[i][j].setStroke(Color.TRANSPARENT);
+                    }
+                }
+            }
+        }
     }
 
     private void updateOverlayLayer() {
@@ -1234,7 +1255,11 @@ public class GuiController implements Initializable {
             for (int j = 0; j < cols; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
-                rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+                if (SettingsManager.getInstance().isGridLinesEnabled()) {
+                    rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+                } else {
+                    rectangle.setStroke(Color.TRANSPARENT);
+                }
                 rectangle.setStrokeWidth(0.8);
                 displayMatrix[i][j] = rectangle;
                 rectangle.setLayoutX(j * BRICK_SIZE);
@@ -1308,6 +1333,12 @@ public class GuiController implements Initializable {
     }
 
     private void updateGhostPanelPosition(ViewData brick) {
+        if (!SettingsManager.getInstance().isGhostPieceEnabled()) {
+            ghostPanel.setVisible(false);
+            return;
+        }
+        ghostPanel.setVisible(true);
+
         int gameX = brick.getGhostXPosition();
         int gameY = brick.getGhostYPosition();
         int[][] brickShape = brick.getBrickData();
@@ -1438,7 +1469,11 @@ public class GuiController implements Initializable {
             }
         } else {
             // Keep grid lines for empty cells - make them more visible
-            rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+            if (SettingsManager.getInstance().isGridLinesEnabled()) {
+                rectangle.setStroke(Color.rgb(50, 70, 100, 0.5));
+            } else {
+                rectangle.setStroke(Color.TRANSPARENT);
+            }
             rectangle.setStrokeWidth(0.8);
         }
     }
@@ -1455,8 +1490,21 @@ public class GuiController implements Initializable {
                 linesCleared = downData.getClearRow().getLinesRemoved();
 
                 if (linesCleared > 0) {
+                    // Play line clear sound
+                    switch (linesCleared) {
+                        case 1 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_SINGLE);
+                        case 2 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_DOUBLE);
+                        case 3 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_TRIPLE);
+                        case 4 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_TETRIS);
+                    }
+
                     // Add lines to level system
+                    int oldLevel = levelSystem.getLevel();
                     levelSystem.addLinesCleared(linesCleared);
+                    if (levelSystem.getLevel() > oldLevel) {
+                        SoundManager.getInstance().playSound(SoundManager.SFX_LEVEL_UP);
+                        showLevelUpNotification(levelSystem.getLevel());
+                    }
 
                     // Update drop speed based on new gravity
                     updateDropSpeed();
@@ -1587,11 +1635,25 @@ public class GuiController implements Initializable {
             // 0
             // FIXED: Combo logic - ensure clearRow is present (hard drop always locks)
             if (downData.getClearRow() != null) {
+                SoundManager.getInstance().playSound(SoundManager.SFX_HARD_DROP);
                 linesCleared = downData.getClearRow().getLinesRemoved();
 
                 if (linesCleared > 0) {
+                    // Play line clear sound
+                    switch (linesCleared) {
+                        case 1 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_SINGLE);
+                        case 2 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_DOUBLE);
+                        case 3 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_TRIPLE);
+                        case 4 -> SoundManager.getInstance().playSound(SoundManager.SFX_LINE_TETRIS);
+                    }
+
                     // Add lines to level system
+                    int oldLevel = levelSystem.getLevel();
                     levelSystem.addLinesCleared(linesCleared);
+                    if (levelSystem.getLevel() > oldLevel) {
+                        SoundManager.getInstance().playSound(SoundManager.SFX_LEVEL_UP);
+                        showLevelUpNotification(levelSystem.getLevel());
+                    }
 
                     // Update drop speed based on new gravity
                     updateDropSpeed();
@@ -1701,6 +1763,7 @@ public class GuiController implements Initializable {
     }
 
     public void gameOver() {
+        SoundManager.getInstance().playSound(SoundManager.SFX_GAME_OVER);
         timeLine.stop();
         isGameOver.setValue(true);
         boolean isHighScore = highScoreManager.isHighScore(currentScore);
@@ -1809,6 +1872,52 @@ public class GuiController implements Initializable {
 
     public void pauseGame(ActionEvent actionEvent) {
         gamePanel.requestFocus();
+    }
+
+    private void showLevelUpNotification(int newLevel) {
+        if (levelUpLabel == null)
+            return;
+
+        levelUpLabel.setText("LEVEL " + newLevel + "!");
+        levelUpLabel.setVisible(true);
+        // Move label up to avoid blocking line clear notifications
+        levelUpLabel.setTranslateY(-150);
+        levelUpLabel.setOpacity(0);
+        levelUpLabel.setScaleX(0.5);
+        levelUpLabel.setScaleY(0.5);
+
+        // Create animation sequence
+        // 1. Fade in and scale up
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), levelUpLabel);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(300), levelUpLabel);
+        scaleUp.setFromX(0.5);
+        scaleUp.setFromY(0.5);
+        scaleUp.setToX(1.2);
+        scaleUp.setToY(1.2);
+
+        ParallelTransition appear = new ParallelTransition(fadeIn, scaleUp);
+
+        // 2. Pulse/Glow (using Scale)
+        ScaleTransition pulse = new ScaleTransition(Duration.millis(200), levelUpLabel);
+        pulse.setFromX(1.2);
+        pulse.setFromY(1.2);
+        pulse.setToX(1.0);
+        pulse.setToY(1.0);
+
+        // 3. Hold
+        PauseTransition hold = new PauseTransition(Duration.millis(800));
+
+        // 4. Fade out
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), levelUpLabel);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+
+        SequentialTransition sequence = new SequentialTransition(appear, pulse, hold, fadeOut);
+        sequence.setOnFinished(e -> levelUpLabel.setVisible(false));
+        sequence.play();
     }
 
 }

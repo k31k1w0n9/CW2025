@@ -2,25 +2,27 @@ package com.comp2042;
 
 public class GameController implements InputEventListener {
 
-    private Board board = new SimpleBoard(22, 10);
+    private Board board; // Lazy initialization - created when game starts
 
     private final GuiController viewGuiController;
 
     public GameController(GuiController c) {
         viewGuiController = c;
         viewGuiController.setEventListener(this);
-        viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
-        viewGuiController.bindScore(board.getScore().scoreProperty());
-        viewGuiController.updateHoldPiece(null);
-        refreshNextPiece(); // Initialize the next piece display
+        // Don't create board yet - wait for user to click "Start Game"
     }
 
     private void refreshNextPiece() {
-        viewGuiController.updateNextPieces(board.getViewData().getNextBrickData());
+        if (board != null) {
+            viewGuiController.updateNextPieces(board.getViewData().getNextBrickData());
+        }
     }
 
     @Override
     public DownData onDownEvent(MoveEvent event) {
+        if (board == null)
+            return new DownData(null, null);
+
         boolean canMove = board.moveBrickDown();
         ClearRow clearRow = null;
 
@@ -58,6 +60,9 @@ public class GameController implements InputEventListener {
 
     @Override
     public DownData onHardDropEvent(MoveEvent event) {
+        if (board == null)
+            return new DownData(null, null);
+
         int dropDistance = board.hardDrop();
 
         // Award points for hard drop (2 points per cell dropped)
@@ -86,24 +91,32 @@ public class GameController implements InputEventListener {
 
     @Override
     public ViewData onLeftEvent(MoveEvent event) {
+        if (board == null)
+            return null;
         board.moveBrickLeft();
         return board.getViewData();
     }
 
     @Override
     public ViewData onRightEvent(MoveEvent event) {
+        if (board == null)
+            return null;
         board.moveBrickRight();
         return board.getViewData();
     }
 
     @Override
     public ViewData onRotateEvent(MoveEvent event) {
+        if (board == null)
+            return null;
         board.rotateLeftBrick();
         return board.getViewData();
     }
 
     @Override
     public ViewData onHoldEvent(MoveEvent event) {
+        if (board == null)
+            return null;
         if (board.holdPiece()) {
             viewGuiController.updateHoldPiece(board.getHoldPieceShape());
             refreshNextPiece();
@@ -113,11 +126,20 @@ public class GameController implements InputEventListener {
 
     @Override
     public void createNewGame() {
-        board.newGame();
+        // Create board if it doesn't exist
+        if (board == null) {
+            board = new SimpleBoard(22, 10);
+            viewGuiController.initGameView(board.getBoardMatrix(), board.getViewData());
+            viewGuiController.bindScore(board.getScore().scoreProperty());
+        } else {
+            board.newGame();
+        }
+        
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
         viewGuiController.updateHoldPiece(null);
         refreshNextPiece();
         // Refresh the falling brick display so it's visible in the new game
         viewGuiController.refreshBrick(board.getViewData());
     }
+
 }

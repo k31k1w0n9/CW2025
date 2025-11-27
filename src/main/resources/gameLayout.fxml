@@ -192,6 +192,11 @@
                pickOnBounds="true" mouseTransparent="false">
     </StackPane>
 
+    <!-- Settings Panel -->
+    <StackPane fx:id="settingsContainer" alignment="CENTER" visible="false"
+               pickOnBounds="true" mouseTransparent="false">
+    </StackPane>
+
     <!-- Customize Panel -->
     <StackPane fx:id="customizeContainer" alignment="CENTER" visible="false"
                pickOnBounds="true" mouseTransparent="false">

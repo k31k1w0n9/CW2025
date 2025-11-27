@@ -1,0 +1,10 @@
+#Tetris Game Settings
+#Thu Nov 27 12:07:36 GMT+08:00 2025
+ghost.enabled=true
+grid.enabled=true
+music.enabled=true
+music.volume=0.4
+particles.enabled=true
+screenshake.enabled=true
+sfx.enabled=true
+sfx.volume=0.7

@@ -10,6 +10,7 @@ import javafx.scene.text.Font;
 public class PauseMenuPanel extends VBox {
 
     private Button resumeButton;
+    private Button settingsButton;
     private Button controlsButton;
     private Button mainMenuButton;
     private Button quitButton;
@@ -51,9 +52,9 @@ public class PauseMenuPanel extends VBox {
                 "-fx-border-radius: 10; " +
                 "-fx-background-radius: 10; " +
                 "-fx-padding: 40;");
-        setPrefSize(350, 450);
-        setMaxSize(350, 450);
-        setMinSize(350, 450);
+        setPrefSize(350, 500);
+        setMaxSize(350, 500);
+        setMinSize(350, 500);
 
         // Paused Title
         Label titleLabel = new Label("PAUSED");
@@ -64,6 +65,9 @@ public class PauseMenuPanel extends VBox {
 
         // Resume Button
         resumeButton = createMenuButton("RESUME");
+
+        // Settings Button
+        settingsButton = createMenuButton("SETTINGS");
 
         // Controls Button
         controlsButton = createMenuButton("CONTROLS");
@@ -79,7 +83,7 @@ public class PauseMenuPanel extends VBox {
         quitButton.setOnMouseEntered(e -> quitButton.setStyle(getQuitButtonHoverStyle()));
         quitButton.setOnMouseExited(e -> quitButton.setStyle(getQuitButtonStyle()));
 
-        getChildren().addAll(titleLabel, resumeButton, controlsButton, mainMenuButton, quitButton);
+        getChildren().addAll(titleLabel, resumeButton, settingsButton, controlsButton, mainMenuButton, quitButton);
     }
 
     private Button createMenuButton(String text) {
@@ -144,6 +148,10 @@ public class PauseMenuPanel extends VBox {
 
     public Button getResumeButton() {
         return resumeButton;
+    }
+
+    public Button getSettingsButton() {
+        return settingsButton;
     }
 
     public Button getControlsButton() {

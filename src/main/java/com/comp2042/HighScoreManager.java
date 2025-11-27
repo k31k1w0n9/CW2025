@@ -9,8 +9,14 @@ public class HighScoreManager {
     private static final String HIGH_SCORE_FILE = "highscores.dat";
     private static final int MAX_HIGH_SCORES = 5;
     private List<HighScoreEntry> highScores;
+    private final String currentFile;
 
     public HighScoreManager() {
+        this(HIGH_SCORE_FILE);
+    }
+
+    public HighScoreManager(String fileName) {
+        this.currentFile = fileName;
         highScores = new ArrayList<>();
         loadHighScores();
     }
@@ -40,7 +46,7 @@ public class HighScoreManager {
     }
 
     private void loadHighScores() {
-        File file = new File(HIGH_SCORE_FILE);
+        File file = new File(currentFile);
         if (!file.exists()) {
             // Initialize with default scores
             highScores.add(new HighScoreEntry("", 500));
@@ -65,7 +71,7 @@ public class HighScoreManager {
     }
 
     private void saveHighScores() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(HIGH_SCORE_FILE))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(currentFile))) {
             oos.writeObject(highScores);
         } catch (IOException e) {
             e.printStackTrace();

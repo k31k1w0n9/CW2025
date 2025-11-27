@@ -25,7 +25,7 @@ public class MainMenuPanel extends StackPane {
 
     private MenuButton startButton;
     private MenuButton customizedButton;
-    private MenuButton controlsButton;
+    private MenuButton settingsButton;
     private MenuButton quitButton;
     private VBox menuContainer;
     private Font buttonFont;
@@ -89,14 +89,14 @@ public class MainMenuPanel extends StackPane {
         // Menu buttons with hover effect
         startButton = new MenuButton("Start Game");
         customizedButton = new MenuButton("Customized");
-        controlsButton = new MenuButton("Options");
+        settingsButton = new MenuButton("Settings");
         quitButton = new MenuButton("Quit Game");
 
         menuContainer.getChildren().addAll(
                 logoBox,
                 startButton,
                 customizedButton,
-                controlsButton,
+                settingsButton,
                 quitButton);
 
         getChildren().add(menuContainer);
@@ -314,8 +314,8 @@ public class MainMenuPanel extends StackPane {
         customizedButton.setOnClickAction(action);
     }
 
-    public void setControlsAction(Runnable action) {
-        controlsButton.setOnClickAction(action);
+    public void setSettingsAction(Runnable action) {
+        settingsButton.setOnClickAction(action);
     }
 
     public void setQuitAction(Runnable action) {
@@ -330,8 +330,8 @@ public class MainMenuPanel extends StackPane {
         return customizedButton;
     }
 
-    public MenuButton getControlsButton() {
-        return controlsButton;
+    public MenuButton getSettingsButton() {
+        return settingsButton;
     }
 
     public MenuButton getQuitButton() {

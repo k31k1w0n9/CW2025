@@ -1,15 +1,13 @@
 package com.comp2042;
 
 import java.io.InputStream;
+import java.util.List;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
@@ -21,6 +19,7 @@ public class ControlsPanel extends VBox {
     private Button currentRebindButton = null;
     private Font customFont;
     private Font customFontBold;
+    private Label titleLabel;
 
     public ControlsPanel(KeyBindings keyBindings) {
         this.keyBindings = keyBindings;
@@ -57,11 +56,13 @@ public class ControlsPanel extends VBox {
         setMinSize(600, 660);
 
         // Title
-        Label titleLabel = new Label("CONTROLS");
+        this.titleLabel = new Label("CONTROLS");
         titleLabel.setFont(customFontBold);
         titleLabel.setStyle("-fx-font-size: 48px; " +
                 "-fx-text-fill: white; " +
                 "-fx-effect: dropshadow(gaussian, #DD0584, 15, 0.8, 0, 0);");
+        titleLabel.setManaged(true);
+        titleLabel.setVisible(true);
 
         // Control mappings
         VBox controlsBox = new VBox(5);
@@ -77,10 +78,6 @@ public class ControlsPanel extends VBox {
                 createControlRow("Rotate Right", "ROTATE_RIGHT"),
                 createControlRow("Hold", "HOLD"),
                 createControlRow("Pause", "PAUSE"));
-
-        // Spacer to push button down
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
 
         // Back button container
         VBox buttonContainer = new VBox();
@@ -120,7 +117,7 @@ public class ControlsPanel extends VBox {
                         "-fx-cursor: hand;"));
 
         buttonContainer.getChildren().add(doneButton);
-        getChildren().addAll(titleLabel, controlsBox, spacer, buttonContainer);
+        getChildren().addAll(titleLabel, controlsBox, buttonContainer);
 
         // Set up key listener for rebinding
         setFocusTraversable(true);
@@ -196,7 +193,7 @@ public class ControlsPanel extends VBox {
     }
 
     private String getCurrentKeysDisplay(String bindingKey) {
-        java.util.List<KeyCode> keys = keyBindings.getKeysForAction(bindingKey);
+        List<KeyCode> keys = keyBindings.getKeysForAction(bindingKey);
         if (keys.isEmpty()) {
             return "Not bound";
         }
@@ -289,5 +286,19 @@ public class ControlsPanel extends VBox {
 
     public Button getDoneButton() {
         return doneButton;
+    }
+
+    public void hideBackButton() {
+        if (doneButton != null) {
+            doneButton.setVisible(false);
+            doneButton.setManaged(false);
+        }
+    }
+
+    public void hideTitle() {
+        if (titleLabel != null) {
+            titleLabel.setVisible(false);
+            titleLabel.setManaged(false);
+        }
     }
 }

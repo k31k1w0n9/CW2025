@@ -86,7 +86,7 @@ class CustomizePanelTest {
         });
 
         boolean[][] saved = GameSettings.getInstance().getCustomPiece("Custom 1");
-        assertFalse(saved[2][2], "Delete should clear saved cells");
+        assertTrue(saved == null, "Delete should remove the custom piece");
     }
 
     private static <T> T runOnFxThread(FxCallable<T> callable) throws Exception {
@@ -122,4 +122,3 @@ class CustomizePanelTest {
         void run() throws Exception;
     }
 }
-
