@@ -275,21 +275,11 @@ public class SimpleBoard implements Board {
         int currentX = (int) currentOffset.getX();
         int[][] currentShape = brickRotator.getCurrentShape();
 
-        // FIXED: Move ghost down until it would collide
-        // The loop checks ghostY+1, so when it finds a collision, ghostY is the last
-        // valid position
-        // CRITICAL: Stop before going out of bounds (row 22 is out of bounds for 22-row
-        // matrix)
         while (ghostY + 1 < currentGameMatrix.length &&
-                !MatrixOperations.intersect(currentGameMatrix, currentShape, currentX, ghostY + 1)) {
+                !MatrixOperations.intersect(currentGameMatrix, currentShape, currentX, ghostY + 1, true)) {
             ghostY++;
         }
 
-        // FIXED: Ensure ghost doesn't go below the last visible row (row 21 = display
-        // row 19)
-        // The matrix has 22 rows (0-21), so the last valid row is 21
-        // But we need to ensure no part of the shape goes beyond row 21
-        // Find the bottommost block in the shape
         int shapeBottomRow = -1;
         for (int i = currentShape.length - 1; i >= 0; i--) {
             for (int j = 0; j < currentShape[i].length; j++) {

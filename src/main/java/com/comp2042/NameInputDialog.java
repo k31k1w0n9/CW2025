@@ -14,7 +14,7 @@ public class NameInputDialog extends VBox {
 
     public NameInputDialog() {
         setAlignment(Pos.CENTER);
-        setSpacing(12);  // Reduced spacing
+        setSpacing(12); // Reduced spacing
         setStyle("-fx-background-color: rgba(29, 39, 56, 0.98); " +
                 "-fx-border-color: white; " +
                 "-fx-border-width: 3; " +
@@ -34,7 +34,7 @@ public class NameInputDialog extends VBox {
         titleLabel.setStyle("-fx-font-size: 32px; " +
                 "-fx-font-weight: bold; " +
                 "-fx-text-fill: white; " +
-                "-fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.8), 15, 0.7, 0, 0);");
+                "-fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.8), 15, 0.5, 0, 0);");
 
         // Score display
         scoreLabel = new Label("0");

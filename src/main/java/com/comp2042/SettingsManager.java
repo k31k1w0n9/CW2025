@@ -136,4 +136,18 @@ public class SettingsManager {
     public void resetToDefaults() {
         setDefaults();
     }
+
+    public void resetAudioToDefaults() {
+        settings.setProperty(MUSIC_ENABLED, String.valueOf(DEFAULT_MUSIC_ENABLED));
+        settings.setProperty(MUSIC_VOLUME, String.valueOf(DEFAULT_MUSIC_VOLUME));
+        settings.setProperty(SFX_ENABLED, String.valueOf(DEFAULT_SFX_ENABLED));
+        settings.setProperty(SFX_VOLUME, String.valueOf(DEFAULT_SFX_VOLUME));
+        saveSettings();
+    }
+
+    public void resetVisualToDefaults() {
+        settings.setProperty(GHOST_PIECE_ENABLED, String.valueOf(DEFAULT_GHOST_ENABLED));
+        settings.setProperty(GRID_LINES_ENABLED, String.valueOf(DEFAULT_GRID_ENABLED));
+        saveSettings();
+    }
 }

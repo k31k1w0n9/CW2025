@@ -17,7 +17,7 @@ import javafx.scene.text.Font;
 public class SettingsPanel extends VBox {
 
     private Button doneButton;
-    private Button resetButton;
+    private Button mainResetButton;
     private SettingsManager settingsManager;
     private Font customFont;
     private Font customFontBold;
@@ -51,6 +51,9 @@ public class SettingsPanel extends VBox {
         if (controlsPanel != null) {
             controlsPanel.hideTitle();
             controlsPanel.hideBackButton();
+            controlsPanel.hideTitle();
+            controlsPanel.hideBackButton();
+            controlsPanel.hideResetButton();
             // Remove border/background from embedded panel to blend in
             controlsPanel.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
             // Reset size constraints to allow it to fit in the content area
@@ -86,9 +89,9 @@ public class SettingsPanel extends VBox {
                 "-fx-background-radius: 10; " +
                 "-fx-padding: 25;");
 
-        setPrefSize(800, 850);
-        setMaxSize(800, 850);
-        setMinSize(800, 850);
+        setPrefSize(800, 900);
+        setMaxSize(800, 900);
+        setMinSize(800, 900);
 
         // Title
         Label titleLabel = new Label("SETTINGS");
@@ -138,6 +141,27 @@ public class SettingsPanel extends VBox {
 
         framedContent.getChildren().addAll(tabsBox, contentArea);
 
+        // Initialize buttons before showing tab (as showTab uses them)
+        // Done button
+        doneButton = new Button("Back");
+        doneButton.setPrefSize(200, 50);
+        doneButton.setMinSize(200, 50);
+        doneButton.setMaxSize(200, 50);
+        doneButton.setFont(customFont);
+        doneButton.setStyle(getButtonStyle());
+        doneButton.setOnMouseEntered(e -> doneButton.setStyle(getButtonHoverStyle()));
+        doneButton.setOnMouseExited(e -> doneButton.setStyle(getButtonStyle()));
+
+        // Main Reset Button (Context-sensitive)
+        mainResetButton = new Button("Reset Defaults");
+        mainResetButton.setPrefSize(240, 50);
+        mainResetButton.setMinSize(240, 50);
+        mainResetButton.setMaxSize(240, 50);
+        mainResetButton.setFont(customFont);
+        mainResetButton.setStyle(getButtonStyle());
+        mainResetButton.setOnMouseEntered(e -> mainResetButton.setStyle(getButtonHoverStyle()));
+        mainResetButton.setOnMouseExited(e -> mainResetButton.setStyle(getButtonStyle()));
+
         // Set initial visibility
         showTab("AUDIO");
 
@@ -160,31 +184,7 @@ public class SettingsPanel extends VBox {
         buttonsBox.setAlignment(Pos.CENTER);
         buttonsBox.setPadding(new Insets(10, 0, 0, 0));
 
-        // Reset button
-        resetButton = new Button("Reset to Defaults");
-        resetButton.setPrefSize(240, 50);
-        resetButton.setMinSize(240, 50);
-        resetButton.setMaxSize(240, 50);
-        resetButton.setFont(customFont);
-        resetButton.setStyle(getButtonStyle());
-        resetButton.setOnMouseEntered(e -> resetButton.setStyle(getButtonHoverStyle()));
-        resetButton.setOnMouseExited(e -> resetButton.setStyle(getButtonStyle()));
-        resetButton.setOnAction(e -> {
-            resetToDefaults();
-            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
-        });
-
-        // Done button
-        doneButton = new Button("Back");
-        doneButton.setPrefSize(200, 50);
-        doneButton.setMinSize(200, 50);
-        doneButton.setMaxSize(200, 50);
-        doneButton.setFont(customFont);
-        doneButton.setStyle(getButtonStyle());
-        doneButton.setOnMouseEntered(e -> doneButton.setStyle(getButtonHoverStyle()));
-        doneButton.setOnMouseExited(e -> doneButton.setStyle(getButtonStyle()));
-
-        buttonsBox.getChildren().addAll(resetButton, doneButton);
+        buttonsBox.getChildren().addAll(mainResetButton, doneButton);
 
         getChildren().addAll(titleLabel, framedContent, buttonsBox);
     }
@@ -259,27 +259,53 @@ public class SettingsPanel extends VBox {
         visualTabButton.setStyle(getTabButtonStyle(false));
         controlsTabButton.setStyle(getTabButtonStyle(false));
 
-        // Hide all content
+        // Hide all content and remove from layout
         audioContent.setVisible(false);
+        audioContent.setManaged(false);
         visualContent.setVisible(false);
-        if (controlsPanel != null)
+        visualContent.setManaged(false);
+        if (controlsPanel != null) {
             controlsPanel.setVisible(false);
+            controlsPanel.setManaged(false);
+        }
 
         // Activate selected tab
+        // Activate selected tab and configure reset button
         switch (tabName) {
             case "AUDIO" -> {
                 audioTabButton.setStyle(getTabButtonStyle(true));
                 audioContent.setVisible(true);
+                audioContent.setManaged(true);
+
+                mainResetButton.setText("Reset Defaults");
+                mainResetButton.setOnAction(e -> {
+                    resetAudioSettings();
+                    SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+                });
             }
             case "VISUAL" -> {
                 visualTabButton.setStyle(getTabButtonStyle(true));
                 visualContent.setVisible(true);
+                visualContent.setManaged(true);
+
+                mainResetButton.setText("Reset Defaults");
+                mainResetButton.setOnAction(e -> {
+                    resetVisualSettings();
+                    SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+                });
             }
             case "CONTROLS" -> {
                 controlsTabButton.setStyle(getTabButtonStyle(true));
                 if (controlsPanel != null) {
                     controlsPanel.setVisible(true);
+                    controlsPanel.setManaged(true);
                     controlsPanel.requestFocus(); // Ensure it captures keys
+
+                    mainResetButton.setText("Reset Defaults");
+                    mainResetButton.setOnAction(e -> {
+                        controlsPanel.resetToDefaults();
+                        SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+                    });
                 }
             }
         }
@@ -432,21 +458,29 @@ public class SettingsPanel extends VBox {
                 "-fx-cursor: hand;";
     }
 
-    private void resetToDefaults() {
-        // Reset all settings to defaults
-        settingsManager.resetToDefaults();
+    private void resetAudioSettings() {
+        settingsManager.resetAudioToDefaults();
 
-        // Update UI to reflect defaults
+        // Update UI
         musicToggle.setText(settingsManager.isMusicEnabled() ? "ON" : "OFF");
         musicToggle.setStyle(getToggleButtonStyle(settingsManager.isMusicEnabled()));
         musicVolumeSlider.setValue(settingsManager.getMusicVolume() * 100);
         musicVolumeSlider.setDisable(!settingsManager.isMusicEnabled());
 
+        // Notify SoundManager
+        SoundManager.getInstance().onMusicEnabledChanged(settingsManager.isMusicEnabled());
+        SoundManager.getInstance().updateMusicVolume(settingsManager.getMusicVolume());
+
         sfxToggle.setText(settingsManager.isSfxEnabled() ? "ON" : "OFF");
         sfxToggle.setStyle(getToggleButtonStyle(settingsManager.isSfxEnabled()));
         sfxVolumeSlider.setValue(settingsManager.getSfxVolume() * 100);
         sfxVolumeSlider.setDisable(!settingsManager.isSfxEnabled());
+    }
 
+    private void resetVisualSettings() {
+        settingsManager.resetVisualToDefaults();
+
+        // Update UI
         ghostToggle.setText(settingsManager.isGhostPieceEnabled() ? "ON" : "OFF");
         ghostToggle.setStyle(getToggleButtonStyle(settingsManager.isGhostPieceEnabled()));
 

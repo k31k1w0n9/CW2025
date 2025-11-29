@@ -14,12 +14,14 @@ import javafx.scene.text.Font;
 public class ControlsPanel extends VBox {
 
     private Button doneButton;
+    private Button resetButton;
     private KeyBindings keyBindings;
     private String currentlyRebinding = null;
     private Button currentRebindButton = null;
     private Font customFont;
     private Font customFontBold;
     private Label titleLabel;
+    private VBox controlsBox;
 
     public ControlsPanel(KeyBindings keyBindings) {
         this.keyBindings = keyBindings;
@@ -65,23 +67,50 @@ public class ControlsPanel extends VBox {
         titleLabel.setVisible(true);
 
         // Control mappings
-        VBox controlsBox = new VBox(5);
+        controlsBox = new VBox(5);
         controlsBox.setAlignment(Pos.CENTER);
-
-        controlsBox.getChildren().addAll(
-                createControlRow("Shift Left", "MOVE_LEFT"),
-                createControlRow("Shift Right", "MOVE_RIGHT"),
-                createControlRow("Soft Drop", "SOFT_DROP"),
-                createControlRow("Hard Drop", "HARD_DROP"),
-                createControlRow("Rotate", "ROTATE"),
-                createControlRow("Rotate Left", "ROTATE_LEFT"),
-                createControlRow("Rotate Right", "ROTATE_RIGHT"),
-                createControlRow("Hold", "HOLD"),
-                createControlRow("Pause", "PAUSE"));
+        refreshControls();
 
         // Back button container
-        VBox buttonContainer = new VBox();
+        VBox buttonContainer = new VBox(10);
         buttonContainer.setAlignment(Pos.CENTER);
+
+        resetButton = new Button("Reset Defaults");
+        resetButton.setPrefSize(200, 45);
+        resetButton.setMinSize(200, 45);
+        resetButton.setMaxSize(200, 45);
+        resetButton.setFont(customFont);
+        resetButton.setStyle("-fx-background-color: transparent; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 18px; " +
+                "-fx-border-color: white; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 8; " +
+                "-fx-background-radius: 8; " +
+                "-fx-cursor: hand;");
+
+        resetButton.setOnMouseEntered(e -> resetButton.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.1); " +
+                        "-fx-text-fill: #FFD75C; " +
+                        "-fx-font-size: 18px; " +
+                        "-fx-border-color: #FFD75C; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 8; " +
+                        "-fx-background-radius: 8; " +
+                        "-fx-cursor: hand;"));
+        resetButton.setOnMouseExited(e -> resetButton.setStyle(
+                "-fx-background-color: transparent; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 18px; " +
+                        "-fx-border-color: white; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 8; " +
+                        "-fx-background-radius: 8; " +
+                        "-fx-cursor: hand;"));
+
+        resetButton.setOnAction(e -> {
+            resetToDefaults();
+        });
 
         doneButton = new Button("Back");
         doneButton.setPrefSize(200, 45);
@@ -116,7 +145,7 @@ public class ControlsPanel extends VBox {
                         "-fx-background-radius: 8; " +
                         "-fx-cursor: hand;"));
 
-        buttonContainer.getChildren().add(doneButton);
+        buttonContainer.getChildren().addAll(resetButton, doneButton);
         getChildren().addAll(titleLabel, controlsBox, buttonContainer);
 
         // Set up key listener for rebinding
@@ -145,6 +174,32 @@ public class ControlsPanel extends VBox {
                 event.consume();
             }
         });
+    }
+
+    public void resetToDefaults() {
+        keyBindings.resetToDefaults();
+        refreshControls();
+    }
+
+    public void hideResetButton() {
+        if (resetButton != null) {
+            resetButton.setVisible(false);
+            resetButton.setManaged(false);
+        }
+    }
+
+    private void refreshControls() {
+        controlsBox.getChildren().clear();
+        controlsBox.getChildren().addAll(
+                createControlRow("Shift Left", "MOVE_LEFT"),
+                createControlRow("Shift Right", "MOVE_RIGHT"),
+                createControlRow("Soft Drop", "SOFT_DROP"),
+                createControlRow("Hard Drop", "HARD_DROP"),
+                createControlRow("Rotate", "ROTATE"),
+                createControlRow("Rotate Left", "ROTATE_LEFT"),
+                createControlRow("Rotate Right", "ROTATE_RIGHT"),
+                createControlRow("Hold", "HOLD"),
+                createControlRow("Pause", "PAUSE"));
     }
 
     private HBox createControlRow(String action, String bindingKey) {

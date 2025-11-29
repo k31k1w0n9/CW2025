@@ -95,14 +95,12 @@ public class GuiController implements Initializable {
     private StackPane rootStackPane;
     @FXML
     private StackPane mainMenuContainer;
-    @FXML
     private MainMenuPanel mainMenuPanel;
     @FXML
     private StackPane gameContainer;
 
     @FXML
     private StackPane pauseContainer;
-    @FXML
     private PauseMenuPanel pauseMenuPanel;
     @FXML
     private StackPane controlsContainer;
@@ -119,7 +117,6 @@ public class GuiController implements Initializable {
 
     @FXML
     private StackPane nameInputContainer;
-    @FXML
     private NameInputDialog nameInputDialog;
     @FXML
     private Button pauseButton;
@@ -158,9 +155,7 @@ public class GuiController implements Initializable {
         // Calculate dynamic cell size based on screen height
         calculateCellSize();
 
-        // =========================================================================
         // DEBUG: Font Loading with detailed error tracking
-        // =========================================================================
         System.out.println("\n--- FONT LOADING ---");
         try {
             System.out.println("Attempting to load fonts...");
@@ -203,12 +198,6 @@ public class GuiController implements Initializable {
             customFont = Font.font("Arial", 28);
             customFontBold = Font.font("Arial", 20);
         }
-
-        // =========================================================================
-        // FIXED: Background is now loaded via CSS (see window_style.css .root)
-        // and via FXML (see gameLayout.fxml #rootPane)
-        // This ensures it loads properly and applies to both root and game area
-        // =========================================================================
 
         // Initialize managers
         highScoreManager = new HighScoreManager();
@@ -284,19 +273,28 @@ public class GuiController implements Initializable {
         setupBoardDimensions();
         setupBrickPanels();
 
-        if (mainMenuPanel != null && mainMenuContainer != null && gameContainer != null) {
+        if (mainMenuContainer != null && gameContainer != null) {
+            mainMenuPanel = new MainMenuPanel();
+            mainMenuContainer.getChildren().add(mainMenuPanel);
+
             mainMenuContainer.setVisible(true);
             gameContainer.setVisible(false);
 
             mainMenuPanel.setStartGameAction(this::startNewGame);
 
-            mainMenuPanel.setSettingsAction(this::showSettings);
+            mainMenuPanel.setSettingsAction(() -> {
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+                showSettings();
+            });
             System.out.println("Settings action set");
 
             mainMenuPanel.setCustomizedAction(this::showCustomizeFromMainMenu);
             System.out.println("Customize action set");
 
-            mainMenuPanel.setQuitAction(() -> System.exit(0));
+            mainMenuPanel.setQuitAction(() -> {
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+                System.exit(0);
+            });
         }
 
         // Set game panel as focusable for keyboard input
@@ -472,6 +470,9 @@ public class GuiController implements Initializable {
     }
 
     private void setupKeyHandlers() {
+        // Attempt to disable IME to prevent interference with controls
+        gamePanel.addEventFilter(javafx.scene.input.InputMethodEvent.ANY, javafx.event.Event::consume);
+
         gamePanel.setOnKeyPressed(keyEvent -> {
             KeyCode code = keyEvent.getCode();
 
@@ -516,7 +517,6 @@ public class GuiController implements Initializable {
 
             if (keyBindings.isKeyBound("PAUSE", code)) {
                 togglePause();
-                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
                 keyEvent.consume();
                 return;
             }
@@ -528,17 +528,32 @@ public class GuiController implements Initializable {
     }
 
     private void setupPauseMenu() {
-        pauseMenuPanel.setVisible(false);
+        pauseMenuPanel = new PauseMenuPanel();
         if (pauseContainer != null) {
+            pauseContainer.getChildren().add(pauseMenuPanel);
             pauseContainer.setVisible(false);
             pauseContainer.setMouseTransparent(true);
         }
 
-        pauseMenuPanel.getResumeButton().setOnAction(e -> togglePause());
-        pauseMenuPanel.getSettingsButton().setOnAction(e -> showSettings());
-        pauseMenuPanel.getMainMenuButton().setOnAction(e -> returnToMainMenu());
-        pauseMenuPanel.getControlsButton().setOnAction(e -> showControls());
-        pauseMenuPanel.getQuitButton().setOnAction(e -> System.exit(0));
+        pauseMenuPanel.getResumeButton().setOnAction(e -> {
+            togglePause();
+        });
+        pauseMenuPanel.getSettingsButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            showSettings();
+        });
+        pauseMenuPanel.getMainMenuButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            returnToMainMenu();
+        });
+        pauseMenuPanel.getControlsButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            showControls();
+        });
+        pauseMenuPanel.getQuitButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            System.exit(0);
+        });
     }
 
     private void setupControlsPanel() {
@@ -585,6 +600,7 @@ public class GuiController implements Initializable {
 
             settingsPanel.getDoneButton().setOnAction(e -> {
                 System.out.println("Settings Done button clicked");
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
                 hideSettings();
             });
 
@@ -617,6 +633,7 @@ public class GuiController implements Initializable {
 
             customizePanel.setOnBackAction(() -> {
                 System.out.println("Back button clicked - returning to main menu");
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
 
                 customizeContainer.setVisible(false);
                 customizeContainer.setPickOnBounds(false);
@@ -645,17 +662,30 @@ public class GuiController implements Initializable {
             gameOverContainer.setMouseTransparent(true);
         }
 
-        gameOverPanel.getRetryButton().setOnAction(e -> newGame(null));
-        gameOverPanel.getQuitButton().setOnAction(e -> System.exit(0));
-        gameOverPanel.getHomeButton().setOnAction(e -> returnToMainMenu());
+        gameOverPanel.getRetryButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            newGame(null);
+        });
+        gameOverPanel.getQuitButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            System.exit(0);
+        });
+        gameOverPanel.getHomeButton().setOnAction(e -> {
+            SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
+            returnToMainMenu();
+        });
     }
 
     private void setupNameInputDialog() {
-        if (nameInputDialog != null && nameInputContainer != null) {
+        if (nameInputContainer != null) {
+            nameInputDialog = new NameInputDialog();
+            nameInputContainer.getChildren().add(nameInputDialog);
+
             nameInputContainer.setVisible(false);
             nameInputContainer.setMouseTransparent(true);
 
             nameInputDialog.getOkButton().setOnAction(e -> {
+                SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
                 String playerName = nameInputDialog.getPlayerName();
                 highScoreManager.addHighScore(playerName, currentScore);
                 nameInputContainer.setVisible(false);
@@ -737,19 +767,27 @@ public class GuiController implements Initializable {
     }
 
     private void startNewGame() {
-        if (mainMenuContainer != null)
-            mainMenuContainer.setVisible(false);
-        if (gameContainer != null)
-            gameContainer.setVisible(true);
-
-        // Delegate to the central newGame method to ensure consistent initialization
-        // This ensures timeline is started, rectangles are reset, and UI is cleared
-        newGame(null);
+        // Play sound immediately
         SoundManager.getInstance().playSound(SoundManager.SFX_GAME_START);
+
+        // Small delay to let the sound start playing before screen transitions
+        PauseTransition delay = new PauseTransition(Duration.millis(100));
+        delay.setOnFinished(e -> {
+            if (mainMenuContainer != null)
+                mainMenuContainer.setVisible(false);
+            if (gameContainer != null)
+                gameContainer.setVisible(true);
+
+            // Delegate to the central newGame method to ensure consistent initialization
+            // This ensures timeline is started, rectangles are reset, and UI is cleared
+            newGame(null);
+        });
+        delay.play();
     }
 
     private void showCustomizeFromMainMenu() {
         System.out.println("\n=== SHOW CUSTOMIZE FROM MAIN MENU ===");
+        SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
 
         if (mainMenuContainer != null) {
             mainMenuContainer.setVisible(false);
@@ -813,6 +851,7 @@ public class GuiController implements Initializable {
         if (isGameOver.get())
             return;
 
+        SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
         isPause.set(!isPause.get());
         pauseMenuPanel.setVisible(isPause.get());
         if (pauseContainer != null) {

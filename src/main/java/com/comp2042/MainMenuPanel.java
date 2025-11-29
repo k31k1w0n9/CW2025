@@ -229,6 +229,11 @@ public class MainMenuPanel extends StackPane {
         private void playLineClearAnimation() {
             isAnimating = true;
 
+            // Execute the click action immediately (including sound effect)
+            if (onClickAction != null) {
+                onClickAction.run();
+            }
+
             // Create overlay that stays in button bounds
             StackPane animationOverlay = new StackPane();
             animationOverlay.setPrefSize(500, 60);
@@ -286,10 +291,6 @@ public class MainMenuPanel extends StackPane {
                         lineAnim.setOnFinished(ev -> {
                             getChildren().remove(animationOverlay);
                             isAnimating = false;
-
-                            if (onClickAction != null) {
-                                onClickAction.run();
-                            }
                         });
                     }
                 }

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.comp2042.PauseMenuPanel?>
-<?import com.comp2042.NameInputDialog?>
-<?import com.comp2042.MainMenuPanel?>
+
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.*?>
@@ -23,7 +21,6 @@
 
     <!-- MAIN MENU -->
     <StackPane fx:id="mainMenuContainer" alignment="CENTER" visible="true">
-        <MainMenuPanel fx:id="mainMenuPanel"/>
     </StackPane>
 
     <!-- GAME SCREEN -->
@@ -149,8 +146,28 @@
 
         </HBox>
 
-        <!-- PAUSE BUTTON -->
-        <StackPane alignment="BOTTOM_RIGHT">
+        <!-- OVERLAYS -->
+        <StackPane fx:id="overlayLayer" alignment="CENTER"
+                   pickOnBounds="false" mouseTransparent="true">
+
+            <!-- Pause Menu -->
+            <StackPane fx:id="pauseContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
+            </StackPane>
+
+            <!-- Name Input -->
+            <StackPane fx:id="nameInputContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
+            </StackPane>
+
+            <!-- Game Over -->
+            <StackPane fx:id="gameOverContainer" visible="false"
+                       pickOnBounds="true" mouseTransparent="false">
+            </StackPane>
+        </StackPane>
+
+        <!-- PAUSE BUTTON - Must be after overlays to stay clickable -->
+        <StackPane alignment="BOTTOM_RIGHT" pickOnBounds="false">
             <padding>
                 <Insets top="0" right="30" bottom="30" left="0"/>
             </padding>
@@ -161,28 +178,6 @@
                     onMouseExited="#onPauseButtonExit"
                     onAction="#togglePause"
                     focusTraversable="false"/>
-        </StackPane>
-
-        <!-- OVERLAYS -->
-        <StackPane fx:id="overlayLayer" alignment="CENTER"
-                   pickOnBounds="false" mouseTransparent="true">
-
-            <!-- Pause Menu -->
-            <StackPane fx:id="pauseContainer" visible="false"
-                       pickOnBounds="true" mouseTransparent="false">
-                <PauseMenuPanel fx:id="pauseMenuPanel"/>
-            </StackPane>
-
-            <!-- Name Input -->
-            <StackPane fx:id="nameInputContainer" visible="false"
-                       pickOnBounds="true" mouseTransparent="false">
-                <NameInputDialog fx:id="nameInputDialog"/>
-            </StackPane>
-
-            <!-- Game Over -->
-            <StackPane fx:id="gameOverContainer" visible="false"
-                       pickOnBounds="true" mouseTransparent="false">
-            </StackPane>
         </StackPane>
 
     </StackPane>
