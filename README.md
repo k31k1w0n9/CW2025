@@ -29,10 +29,10 @@
 - [x] High Score Display
 - [x] Pause Panel
 - [x] Options Panel
-- [ ] Settings Menu 
+- [x] Settings Menu 
 - [x] Controls Menu
 - [x] Main Menu
-- [ ] Sound Effects & Background Music
+- [x] Sound Effects & Background Music
 
 ## Extra Features
 - [x] Brick Customization
@@ -43,4 +43,4 @@
 - This README.md
 
 ---
-*Last updated: 27/11/2025 01:30:00*
+*Last updated: 27/11/2025 22:00:00*
