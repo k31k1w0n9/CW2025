@@ -1,12 +1,20 @@
 package com.comp2042.logic.bricks;
 
-import com.comp2042.GameSettings;
+import com.comp2042.domain.Brick;
+import com.comp2042.domain.RandomBrickGenerator;
+import com.comp2042.domain.bricks.CustomBrick;
+import com.comp2042.system.GameSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the {@link RandomBrickGenerator}.
+ * verifies the 7-bag randomization algorithm, custom piece spawning,
+ * and emergency fallback mechanisms.
+ */
 class RandomBrickGeneratorTest {
 
     private RandomBrickGenerator generator;

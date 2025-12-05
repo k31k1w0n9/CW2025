@@ -1,9 +1,14 @@
 package com.comp2042;
 
+import com.comp2042.system.LevelSystem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the {@link LevelSystem} class.
+ * Verifies level progression, gravity calculation, and 20G mode behavior.
+ */
 class LevelSystemTest {
 
     private LevelSystem levelSystem;

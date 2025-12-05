@@ -1,8 +1,8 @@
 #Tetris Game Settings
-#Sun Nov 30 03:11:23 GMT+08:00 2025
-ghost.enabled=false
+#Fri Dec 05 00:11:13 GMT+08:00 2025
+ghost.enabled=true
 grid.enabled=true
-music.enabled=false
+music.enabled=true
 music.volume=0.5
 particles.enabled=true
 screenshake.enabled=true

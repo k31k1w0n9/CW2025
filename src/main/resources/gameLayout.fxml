@@ -9,7 +9,7 @@
 <?import javafx.geometry.Insets?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.comp2042.GuiController"
+           fx:controller="com.comp2042.core.GuiController"
            fx:id="rootStackPane"
            alignment="CENTER"
            stylesheets="@window_style.css"

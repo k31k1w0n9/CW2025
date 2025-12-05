@@ -1,11 +1,17 @@
 package com.comp2042;
 
+import com.comp2042.system.GameSettings;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the {@link GameSettings} singleton.
+ * Verifies persistence of user preferences, custom piece management,
+ * and default value handling.
+ */
 class GameSettingsTest {
 
     private GameSettings settings;

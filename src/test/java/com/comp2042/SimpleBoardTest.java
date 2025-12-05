@@ -1,9 +1,15 @@
 package com.comp2042;
 
+import com.comp2042.logic.SimpleBoard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for the {@link SimpleBoard} logic.
+ * Covers board operations including movement, rotation, line clearing,
+ * and game over conditions.
+ */
 class SimpleBoardTest {
 
     private SimpleBoard board;
