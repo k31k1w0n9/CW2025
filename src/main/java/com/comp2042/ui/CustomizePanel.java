@@ -23,6 +23,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
+/**
+ * UI Panel for the Customisation Mode.
+ * Allows users to create custom brick shapes, set their colors, and configure
+ * spawn rates.
+ * Provides a grid interface for designing pieces and integrates with
+ * {@link GameSettings} for persistence.
+ */
 public class CustomizePanel extends StackPane {
 
     private VBox piecesListBox;
@@ -54,6 +61,11 @@ public class CustomizePanel extends StackPane {
     private Label previewPlaceholder;
     private Slider spawnSlider;
 
+    /**
+     * Constructs a new CustomizePanel.
+     * Initializes the complex UI layout including the pieces list, design grid,
+     * and settings controls. Loads initial state from {@link GameSettings}.
+     */
     public CustomizePanel() {
         // Load custom fonts
         try {

@@ -136,12 +136,6 @@ public class GameController implements InputEventListener {
 
     /**
      * Handles a right movement event.
-     *
-     * @param event the move event
-     * @return ViewData representing the updated game state
-     */
-    /**
-     * Handles a right movement event.
      * Moves the piece closer to the right wall.
      *
      * @param event the move event
@@ -155,12 +149,6 @@ public class GameController implements InputEventListener {
         return board.getViewData();
     }
 
-    /**
-     * Handles a rotation event.
-     *
-     * @param event the move event
-     * @return ViewData representing the updated game state
-     */
     /**
      * Handles a rotation event.
      * Rotates the current piece 90 degrees counter-clockwise.

@@ -60,6 +60,10 @@ public class SimpleBoard implements Board {
         createNewBrick();
     }
 
+    /**
+     * Ensures the queue of upcoming pieces is full.
+     * Maintains a buffer of 5 pieces to be shown in the "Next" preview.
+     */
     private void refillNextPieceQueue() {
         while (nextPieceQueue.size() < 5) {
             nextPieceQueue.add(brickGenerator.getBrick());

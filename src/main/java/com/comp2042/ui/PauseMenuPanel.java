@@ -95,6 +95,12 @@ public class PauseMenuPanel extends VBox {
         getChildren().addAll(titleLabel, resumeButton, settingsButton, controlsButton, mainMenuButton, quitButton);
     }
 
+    /**
+     * Creates a standard menu button with correct styling and hover effects.
+     *
+     * @param text the text to display on the button
+     * @return the constructed Button
+     */
     private Button createMenuButton(String text) {
         Button button = new Button(text);
         button.setPrefSize(250, 50);
@@ -107,6 +113,11 @@ public class PauseMenuPanel extends VBox {
         return button;
     }
 
+    /**
+     * Returns the base CSS style for standard menu buttons.
+     *
+     * @return the CSS style string
+     */
     private String getButtonStyle() {
         return "-fx-background-color: transparent; " +
                 "-fx-text-fill: white; " +
@@ -119,6 +130,11 @@ public class PauseMenuPanel extends VBox {
                 "-fx-cursor: hand;";
     }
 
+    /**
+     * Returns the hover CSS style for standard menu buttons.
+     *
+     * @return the CSS style string for hover state
+     */
     private String getButtonHoverStyle() {
         return "-fx-background-color: rgba(255, 255, 255, 0.1); " +
                 "-fx-text-fill: white; " +
@@ -131,6 +147,11 @@ public class PauseMenuPanel extends VBox {
                 "-fx-cursor: hand;";
     }
 
+    /**
+     * Returns the base CSS style for the Quit button (pink).
+     *
+     * @return the CSS style string
+     */
     private String getQuitButtonStyle() {
         return "-fx-background-color: #DD0584; " +
                 "-fx-text-fill: white; " +
@@ -143,6 +164,11 @@ public class PauseMenuPanel extends VBox {
                 "-fx-cursor: hand;";
     }
 
+    /**
+     * Returns the hover CSS style for the Quit button.
+     *
+     * @return the CSS style string for hover state
+     */
     private String getQuitButtonHoverStyle() {
         return "-fx-background-color: derive(#DD0584, 20%); " +
                 "-fx-text-fill: white; " +

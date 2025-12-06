@@ -187,6 +187,12 @@ public class MainMenuPanel extends StackPane {
             setStyle("-fx-cursor: hand;");
         }
 
+        /**
+         * Plays or reverses the hover animation sequence.
+         * Shows/hides arrows, scales text, and changes colors.
+         *
+         * @param show true to play the "hover enter" animation, false for "hover exit"
+         */
         private void playHoverAnimation(boolean show) {
             Duration duration = Duration.millis(200);
 
@@ -243,6 +249,11 @@ public class MainMenuPanel extends StackPane {
             }
         }
 
+        /**
+         * Plays the "line clear" flashing animation when confirmed.
+         * Triggers the configured action immediately, then shows a visual flash and
+         * dissolve effect.
+         */
         private void playLineClearAnimation() {
             isAnimating = true;
 
@@ -318,6 +329,11 @@ public class MainMenuPanel extends StackPane {
             flashSequence.play();
         }
 
+        /**
+         * Sets the action to be executed when the button is clicked.
+         *
+         * @param action the Runnable to execute
+         */
         public void setOnClickAction(Runnable action) {
             this.onClickAction = action;
         }

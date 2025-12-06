@@ -1,0 +1,9 @@
+com.comp2042
+com.comp2042.core
+com.comp2042.data
+com.comp2042.domain
+com.comp2042.domain.bricks
+com.comp2042.events
+com.comp2042.logic
+com.comp2042.system
+com.comp2042.ui

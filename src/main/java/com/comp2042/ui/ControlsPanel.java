@@ -12,6 +12,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
+/**
+ * UI Panel for displaying and customizing game controls.
+ * Allows users to view current key bindings and rebind keys to their
+ * preference.
+ * Integration with {@link KeyBindings} ensures changes are persisted.
+ */
 public class ControlsPanel extends VBox {
 
     private Button doneButton;
@@ -24,6 +30,13 @@ public class ControlsPanel extends VBox {
     private Label titleLabel;
     private VBox controlsBox;
 
+    /**
+     * Constructs a new ControlsPanel.
+     * Initializes the UI layout, loads custom fonts, and populates the control
+     * list.
+     *
+     * @param keyBindings the data model for key bindings
+     */
     public ControlsPanel(KeyBindings keyBindings) {
         this.keyBindings = keyBindings;
 

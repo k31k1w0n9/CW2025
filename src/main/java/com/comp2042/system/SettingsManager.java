@@ -237,6 +237,9 @@ public class SettingsManager {
 
     /**
      * Resets all settings to their default values.
+     * <p>
+     * Immediately persists these changes to the settings file to ensure consistency
+     * across application restarts.
      */
     public void resetToDefaults() {
         setDefaults();

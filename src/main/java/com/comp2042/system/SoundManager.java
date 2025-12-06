@@ -121,6 +121,7 @@ public class SoundManager {
 
     /**
      * Stops the background music.
+     * Resets playback position to the beginning.
      */
     public void stopMusic() {
         if (musicPlayer != null) {
@@ -130,6 +131,7 @@ public class SoundManager {
 
     /**
      * Pauses the background music.
+     * Music can be resumed from the current position.
      */
     public void pauseMusic() {
         if (musicPlayer != null) {
@@ -139,6 +141,7 @@ public class SoundManager {
 
     /**
      * Resumes the background music if music is enabled.
+     * Continues playback from the paused position.
      */
     public void resumeMusic() {
         if (settingsManager.isMusicEnabled() && musicPlayer != null) {
@@ -190,6 +193,9 @@ public class SoundManager {
 
     /**
      * Updates the SFX volume for future sound plays.
+     * Note: Does not affect currently playing sound effects (AudioClips are
+     * fire-and-forget).
+     * The new volume will be applied to the next {@link #playSound(String)} call.
      *
      * @param volume the new volume level (0.0 to 1.0)
      */

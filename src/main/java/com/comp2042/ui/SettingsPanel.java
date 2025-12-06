@@ -282,6 +282,13 @@ public class SettingsPanel extends VBox {
         showTab(tabName);
     }
 
+    /**
+     * Switches the view to the specified tab.
+     * Updates visibility of content panels and configures the main reset button
+     * context.
+     *
+     * @param tabName the name of the tab to activate
+     */
     private void showTab(String tabName) {
         // Reset tab styles
         audioTabButton.setStyle(getTabButtonStyle(false));
@@ -340,6 +347,13 @@ public class SettingsPanel extends VBox {
         }
     }
 
+    /**
+     * Creates a tab navigation button.
+     *
+     * @param text   the text to display on the button
+     * @param active whether this tab is currently active (affects styling)
+     * @return the constructed Button
+     */
     private Button createTabButton(String text, boolean active) {
         Button button = new Button(text);
         button.setPrefSize(150, 40);
@@ -350,6 +364,13 @@ public class SettingsPanel extends VBox {
         return button;
     }
 
+    /**
+     * Returns the CSS style string for a tab button.
+     *
+     * @param active true if the button represents the active tab (pink highlight),
+     *               false otherwise (transparent)
+     * @return the CSS style string
+     */
     private String getTabButtonStyle(boolean active) {
         if (active) {
             return "-fx-background-color: #DD0584; " +
@@ -372,6 +393,14 @@ public class SettingsPanel extends VBox {
         }
     }
 
+    /**
+     * Creates a row containing a label and a toggle button (ON/OFF).
+     *
+     * @param label        the text label for the setting
+     * @param initialState the initial state of the toggle
+     * @param callback     the callback to execute when the toggle state changes
+     * @return an HBox containing the label and toggle button
+     */
     private HBox createToggleRow(String label, boolean initialState, ToggleCallback callback) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER);
@@ -406,6 +435,14 @@ public class SettingsPanel extends VBox {
         return row;
     }
 
+    /**
+     * Creates a row containing a label and a volume slider.
+     *
+     * @param label        the text label for the setting
+     * @param initialValue the initial volume value (0.0 to 1.0)
+     * @param callback     the callback to execute when the slider value changes
+     * @return an HBox containing the label and slider
+     */
     private HBox createVolumeRow(String label, double initialValue, VolumeCallback callback) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER);
@@ -443,6 +480,12 @@ public class SettingsPanel extends VBox {
         return row;
     }
 
+    /**
+     * Returns the CSS style string for a toggle button based on its state.
+     *
+     * @param isOn true for ON (Green), false for OFF (Red)
+     * @return the CSS style string
+     */
     private String getToggleButtonStyle(boolean isOn) {
         if (isOn) {
             return "-fx-background-color: #4CAF50; " +
@@ -465,6 +508,11 @@ public class SettingsPanel extends VBox {
         }
     }
 
+    /**
+     * Returns the base CSS style for standard buttons.
+     *
+     * @return the CSS style string
+     */
     private String getButtonStyle() {
         return "-fx-background-color: transparent; " +
                 "-fx-text-fill: white; " +
@@ -476,6 +524,11 @@ public class SettingsPanel extends VBox {
                 "-fx-cursor: hand;";
     }
 
+    /**
+     * Returns the hover CSS style for standard buttons.
+     *
+     * @return the CSS style string for hover state
+     */
     private String getButtonHoverStyle() {
         return "-fx-background-color: rgba(255, 255, 255, 0.1); " +
                 "-fx-text-fill: #FFD75C; " +

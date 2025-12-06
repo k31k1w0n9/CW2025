@@ -16,10 +16,26 @@ import javafx.util.Duration;
 
 import java.io.InputStream;
 
+/**
+ * A UI component responsible for displaying animated notifications to the
+ * player.
+ * Used for events like scoring, level ups, and special moves (e.g. T-Spin,
+ * Back-to-Back).
+ * Handles the creation, styling, and animation sequence (pop-in, hold,
+ * float-out) of the notification.
+ */
 public class NotificationPanel extends BorderPane {
 
     private Label scoreLabel;
 
+    /**
+     * Constructs a new NotificationPanel with the specified text.
+     * Dynamically adjusts the size and font based on the length and line count of
+     * the text
+     * to ensure it fits visually within the game styling.
+     *
+     * @param text the text to display in the notification (can be multi-line)
+     */
     public NotificationPanel(String text) {
         // Count lines to adjust sizing
         int lineCount = text.split("\\n").length;
@@ -87,6 +103,16 @@ public class NotificationPanel extends BorderPane {
         setMouseTransparent(true);
     }
 
+    /**
+     * Triggers the display animation for this notification.
+     * Use a sequence of scaling, fading, and translation to create a dynamic
+     * "pop-up" effect.
+     * Automatically removes the notification from the parent list when the
+     * animation completes.
+     *
+     * @param list the ObservableList of nodes (usually from a parent Group or Pane)
+     *             to remove this panel from after animation
+     */
     public void showScore(ObservableList<Node> list) {
 
         // Phase 1: Pop in with scale effect

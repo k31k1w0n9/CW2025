@@ -804,6 +804,9 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Resets the pause button style when mouse exits data.
+     */
     @FXML
     public void onPauseButtonExit() {
         if (pauseButton != null) {
@@ -846,6 +849,11 @@ public class GuiController implements Initializable {
         delay.play();
     }
 
+    /**
+     * Transitions from the Main Menu to the Customize screen.
+     * Manages visibility of containers and ensures the customize panel is
+     * interactive.
+     */
     private void showCustomizeFromMainMenu() {
         System.out.println("\n=== SHOW CUSTOMIZE FROM MAIN MENU ===");
         SoundManager.getInstance().playSound(SoundManager.SFX_BTN_CLICK);
@@ -888,6 +896,10 @@ public class GuiController implements Initializable {
         System.out.println("=== SHOW CUSTOMIZE COMPLETE ===\n");
     }
 
+    /**
+     * Returns the user to the Main Menu from any other screen.
+     * Stops game loop, hides overlay panels, and resets visibility states.
+     */
     public void returnToMainMenu() {
         if (timeLine != null)
             timeLine.stop();
@@ -908,6 +920,10 @@ public class GuiController implements Initializable {
         updateOverlayLayer();
     }
 
+    /**
+     * Toggles the game's pause state.
+     * Shows/hides the pause menu and stops/resumes the game timeline.
+     */
     public void togglePause() {
         if (isGameOver.get())
             return;
@@ -931,6 +947,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Updates the "Next Piece" preview display.
+     * Renders the upcoming pieces in the right-side panel.
+     *
+     * @param nextShapes list of matrices representing the shape of upcoming pieces
+     */
     public void updateNextPieces(List<int[][]> nextShapes) {
         if (nextPiecesContainer == null)
             return;
@@ -1213,6 +1235,12 @@ public class GuiController implements Initializable {
         };
     }
 
+    /**
+     * Returns the name of a standard piece based on its ID.
+     *
+     * @param id the piece ID (1-7)
+     * @return the piece name or null if invalid
+     */
     private String getStandardPieceName(int id) {
         return switch (id) {
             case 1 -> "I Piece";
@@ -1227,6 +1255,13 @@ public class GuiController implements Initializable {
     }
 
     // Find custom piece name by matching shape to stored designs
+    /**
+     * Identifies a custom piece by its shape matrix.
+     * Compares the input shape against stored custom piece designs.
+     *
+     * @param shape the shape matrix to identify
+     * @return the name of the matching custom piece, or null if not found
+     */
     private String findCustomPieceName(int[][] shape) {
         if (shape == null)
             return null;
@@ -1248,6 +1283,14 @@ public class GuiController implements Initializable {
     }
 
     // Check if shape matches design (simple comparison - assumes base rotation)
+    /**
+     * Helper to compare a numeric shape matrix with a boolean design matrix.
+     * Assumes value 8 represents a block in the shape matrix.
+     *
+     * @param shape  the numeric shape matrix from game logic
+     * @param design the boolean design matrix from settings
+     * @return true if the shapes match structurally
+     */
     private boolean shapeMatches(int[][] shape, boolean[][] design) {
         if (shape == null || design == null)
             return false;
@@ -1269,6 +1312,12 @@ public class GuiController implements Initializable {
     }
 
     // Get settings for a custom piece by ID
+    /**
+     * Retrieves piece settings using a numeric ID.
+     *
+     * @param id the unique ID of the piece
+     * @return the PieceSettings object, or null if not found
+     */
     private GameSettings.PieceSettings getPieceSettingsById(int id) {
         GameSettings settings = GameSettings.getInstance();
         for (GameSettings.PieceSettings ps : settings.getAllCustomPieces().keySet().stream()
@@ -1283,6 +1332,12 @@ public class GuiController implements Initializable {
     }
 
     // Get color for a custom piece by ID
+    /**
+     * Gets the configured color for a piece ID, falling back to default if needed.
+     *
+     * @param id the unique ID of the piece
+     * @return the Color of the piece
+     */
     private Color getCustomPieceColorById(int id) {
         GameSettings.PieceSettings ps = getPieceSettingsById(id);
         if (ps != null) {
@@ -1292,6 +1347,13 @@ public class GuiController implements Initializable {
     }
 
     // Get color for a custom piece shape
+    /**
+     * Determines the color for a custom piece based on its shape.
+     * Uses pattern matching to identify the piece name and retrieve settings.
+     *
+     * @param shape the shape matrix of the piece
+     * @return the configured Color
+     */
     private Color getColorForCustomPiece(int[][] shape) {
         String pieceName = findCustomPieceName(shape);
         if (pieceName != null) {
@@ -1304,6 +1366,12 @@ public class GuiController implements Initializable {
         return GameSettings.getInstance().getCustomPieceColor();
     }
 
+    /**
+     * Recreates the visual representation of the current falling brick.
+     * Clears previous rectangles and creates new ones based on the shape.
+     *
+     * @param brickShape the matrix representing the falling brick
+     */
     private void rebuildBrickRectangles(int[][] brickShape) {
         brickPanel.getChildren().clear();
         rectangles = new Rectangle[brickShape.length][brickShape[0].length];
@@ -1322,6 +1390,11 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Recreates the visual representation of the ghost piece (shadow).
+     *
+     * @param brickShape the matrix representing the ghost piece shape
+     */
     private void rebuildGhostRectangles(int[][] brickShape) {
         ghostPanel.getChildren().clear();
         ghostRectangles = new Rectangle[brickShape.length][brickShape[0].length];
@@ -1342,6 +1415,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Initializes the game view components (grid, brick, ghost, timeline).
+     *
+     * @param boardMatrix the initial state of the game board
+     * @param viewData    the initial view data including piece positions
+     */
     public void initGameView(int[][] boardMatrix, ViewData viewData) {
         if (timeLine != null) {
             timeLine.stop();
@@ -1389,6 +1468,12 @@ public class GuiController implements Initializable {
         updateNextPieces(viewData.getNextBrickData());
     }
 
+    /**
+     * Updates the position and visibility of the active falling brick.
+     * Matches the UI position to the logical game grid coordinates.
+     *
+     * @param brick the current view data of the falling brick
+     */
     private void updateBrickPanelPosition(ViewData brick) {
         int gameX = brick.getxPosition();
         int gameY = brick.getyPosition();
@@ -1432,6 +1517,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Updates the position and visibility of the ghost piece (shadow).
+     * Calculates position based on where the piece would land.
+     *
+     * @param brick the current view data of the piece
+     */
     private void updateGhostPanelPosition(ViewData brick) {
         if (!SettingsManager.getInstance().isGhostPieceEnabled()) {
             ghostPanel.setVisible(false);
@@ -1479,6 +1570,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Refreshes the visual state of the falling brick.
+     * Updates colors, position, and ghost piece based on current game state.
+     *
+     * @param brick the current view data of the falling brick
+     */
     public void refreshBrick(ViewData brick) {
         int[][] brickShape = brick.getBrickData();
 

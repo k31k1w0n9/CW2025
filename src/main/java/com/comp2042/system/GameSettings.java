@@ -150,6 +150,12 @@ public class GameSettings {
         customPieces.put(name, copy);
     }
 
+    /**
+     * Resets the design of a custom piece to an empty grid.
+     * The piece entry remains in the system.
+     *
+     * @param name the name of the custom piece to clear
+     */
     public void clearCustomPiece(String name) {
         if (name == null || !customPieces.containsKey(name)) {
             return;
@@ -157,6 +163,12 @@ public class GameSettings {
         customPieces.put(name, new boolean[4][4]);
     }
 
+    /**
+     * Removes a custom piece from the system.
+     * Prevents removal of standard pieces or non-custom entries.
+     *
+     * @param name the name of the custom piece to remove
+     */
     public void removeCustomPiece(String name) {
         if (name == null || !name.startsWith("Custom")) {
             return;
@@ -187,6 +199,12 @@ public class GameSettings {
         return newName;
     }
 
+    /**
+     * Calculates the next available unique ID for a custom piece.
+     * Scans existing IDs and returns the highest ID + 1.
+     *
+     * @return the next available integer ID
+     */
     private int getNextAvailableId() {
         int nextId = 9;
         for (PieceSettings ps : pieceSettings.values()) {
@@ -236,14 +254,31 @@ public class GameSettings {
         return allPieces;
     }
 
+    /**
+     * Checks if the given piece name corresponds to a standard Tetris piece.
+     *
+     * @param pieceName the name of the piece to check
+     * @return true if it is a standard piece, false if custom or null
+     */
     public boolean isStandardPiece(String pieceName) {
         return pieceName != null && pieceName.endsWith(" Piece") && !pieceName.startsWith("Custom");
     }
 
+    /**
+     * Retrieves the grid design associated with a piece name.
+     *
+     * @param name the name of the piece
+     * @return the 2D boolean array representing the shape, or null if not found
+     */
     public boolean[][] getCustomPiece(String name) {
         return customPieces.get(name);
     }
 
+    /**
+     * Returns the map of all custom piece designs.
+     *
+     * @return a Map where key is the piece name and value is the shape grid
+     */
     public Map<String, boolean[][]> getAllCustomPieces() {
         return customPieces;
     }
@@ -271,6 +306,13 @@ public class GameSettings {
         return null;
     }
 
+    /**
+     * Sets the color for a specific piece.
+     * Updates the persistence model.
+     *
+     * @param pieceName the name of the piece
+     * @param color     the new color
+     */
     public void setPieceColor(String pieceName, Color color) {
         if (pieceName != null) {
             PieceSettings settings = pieceSettings.get(pieceName);
@@ -284,6 +326,12 @@ public class GameSettings {
         }
     }
 
+    /**
+     * Enables or disables the outline for a specific piece.
+     *
+     * @param pieceName the name of the piece
+     * @param enabled   true to enable outline, false to disable
+     */
     public void setPieceOutlineEnabled(String pieceName, boolean enabled) {
         if (pieceName != null) {
             PieceSettings settings = pieceSettings.get(pieceName);
@@ -297,6 +345,12 @@ public class GameSettings {
         }
     }
 
+    /**
+     * Enables or disables a piece from spawning in the game.
+     *
+     * @param pieceName the name of the piece
+     * @param enabled   true to include in random generation, false to exclude
+     */
     public void setPieceEnableInGame(String pieceName, boolean enabled) {
         if (pieceName != null) {
             PieceSettings settings = pieceSettings.get(pieceName);
@@ -310,6 +364,12 @@ public class GameSettings {
         }
     }
 
+    /**
+     * Sets the relative spawn rate (weight) for a piece.
+     *
+     * @param pieceName the name of the piece
+     * @param rate      the spawn rate (typically 0-10)
+     */
     public void setPieceSpawnRate(String pieceName, int rate) {
         if (pieceName != null) {
             PieceSettings settings = pieceSettings.get(pieceName);
@@ -323,6 +383,12 @@ public class GameSettings {
         }
     }
 
+    /**
+     * Sets the grid size for a custom piece.
+     *
+     * @param pieceName the name of the custom piece
+     * @param size      the dimension of the grid (e.g., 4 for 4x4)
+     */
     public void setPieceGridSize(String pieceName, int size) {
         if (pieceName != null && pieceName.startsWith("Custom")) {
             PieceSettings settings = pieceSettings.get(pieceName);
@@ -337,34 +403,42 @@ public class GameSettings {
     }
 
     // Legacy methods for backwards compatibility (now use default)
+    /** @return the default color for new custom pieces. */
     public Color getCustomPieceColor() {
         return defaultCustomPieceColor;
     }
 
+    /** @param customPieceColor the default color for new custom pieces. */
     public void setCustomPieceColor(Color customPieceColor) {
         this.defaultCustomPieceColor = customPieceColor;
     }
 
+    /** @return true if outlines are enabled by default for new pieces. */
     public boolean isOutlineEnabled() {
         return defaultOutlineEnabled;
     }
 
+    /** @param outlineEnabled the default outline setting for new pieces. */
     public void setOutlineEnabled(boolean outlineEnabled) {
         this.defaultOutlineEnabled = outlineEnabled;
     }
 
+    /** @return true if new pieces are enabled in-game by default. */
     public boolean isEnableInGame() {
         return enableInGame;
     }
 
+    /** @param enableInGame the default in-game status for new pieces. */
     public void setEnableInGame(boolean enableInGame) {
         this.enableInGame = enableInGame;
     }
 
+    /** @return the default spawn rate for new pieces. */
     public int getSpawnRate() {
         return spawnRate;
     }
 
+    /** @param spawnRate the default spawn rate for new pieces. */
     public void setSpawnRate(int spawnRate) {
         this.spawnRate = spawnRate;
     }
