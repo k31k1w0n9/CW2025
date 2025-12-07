@@ -211,6 +211,10 @@ java -jar target/CW2025-1.0-SNAPSHOT.jar
 - **Issue:** Rapid succession of events (e.g. Level Up immediately followed by a Combo) may occasionally cause notification text to overlap briefly
 - **Status:** A queue system has been implemented to minimise this, but extremely fast events may still overlap
 
+#### 2. Duplicate Key Bindings
+- **Issue:** The controls configuration allows assigning the same key to multiple actions (e.g. setting 'SPACE' for both 'Hard Drop' and 'Rotate'). This results in ambiguous input handling where one key press triggers multiple actions.
+- **Status:** Validation logic to check for duplicates before saving bindings is currently missing.
+
 ### 3.3 Not Implemented
 #### 1. Multiplayer Mode
 - **Reason:** Not implemented due to the significant architectural changes required for networking and the focus on polishing the single-player experience and code maintainability
