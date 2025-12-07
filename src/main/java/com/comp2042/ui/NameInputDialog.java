@@ -146,10 +146,20 @@ public class NameInputDialog extends VBox {
         return name.isEmpty() ? "AAA" : name;
     }
 
+    /**
+     * Returns the "OK" button control.
+     *
+     * @return the OK button
+     */
     public Button getOkButton() {
         return okButton;
     }
 
+    /**
+     * Returns the text field for name input.
+     *
+     * @return the name TextField
+     */
     public TextField getNameTextField() {
         return nameTextField;
     }

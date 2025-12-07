@@ -13,6 +13,12 @@ public final class Score {
     private final IntegerProperty score = new SimpleIntegerProperty(0);
 
     /**
+     * Constructs a new Score object starting at zero.
+     */
+    public Score() {
+    }
+
+    /**
      * Returns the score property for binding to UI elements.
      *
      * @return the IntegerProperty representing the current score

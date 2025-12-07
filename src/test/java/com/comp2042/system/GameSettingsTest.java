@@ -1,6 +1,5 @@
-package com.comp2042;
+package com.comp2042.system;
 
-import com.comp2042.system.GameSettings;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

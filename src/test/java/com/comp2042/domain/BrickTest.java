@@ -1,5 +1,6 @@
-package com.comp2042.logic.bricks;
+package com.comp2042.domain;
 
+import com.comp2042.domain.bricks.*;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;

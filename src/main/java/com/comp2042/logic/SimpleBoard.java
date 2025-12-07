@@ -219,6 +219,13 @@ public class SimpleBoard implements Board {
         return false;
     }
 
+    /**
+     * Spawns a new brick at the top of the board.
+     * Takes the next piece from the queue and places it at the starting position.
+     * Also checks for immediate collision which would indicate a Game Over.
+     *
+     * @return true if collision detected (Game Over), false otherwise
+     */
     @Override
     public boolean createNewBrick() {
         if (nextPieceQueue.isEmpty()) {
@@ -246,6 +253,13 @@ public class SimpleBoard implements Board {
         return collision;
     }
 
+    /**
+     * Swaps the current active piece with the held piece.
+     * Implements the hold mechanic, allowing players to save a piece for later.
+     * Can only be used once per piece drop (until a new piece spawns).
+     *
+     * @return true if hold was successful, false if hold is currently locked
+     */
     @Override
     public boolean holdPiece() {
         if (!canHold) {
@@ -268,6 +282,11 @@ public class SimpleBoard implements Board {
         return true;
     }
 
+    /**
+     * Retrieves the shape matrix of the currently held piece.
+     *
+     * @return the 2D array representing the held piece, or null if empty
+     */
     @Override
     public int[][] getHoldPieceShape() {
         if (holdPiece == null) {
@@ -276,11 +295,22 @@ public class SimpleBoard implements Board {
         return holdPiece.getShapeMatrix().get(0);
     }
 
+    /**
+     * Returns the current state of the game board grid.
+     *
+     * @return a 2D integer array where 0 is empty and other values represent colors
+     */
     @Override
     public int[][] getBoardMatrix() {
         return currentGameMatrix;
     }
 
+    /**
+     * Collects all relevant data needed for the UI to render the game state.
+     * Includes current piece, position, next pieces, and ghost position.
+     *
+     * @return a ViewData object containing current game snapshot
+     */
     @Override
     public ViewData getViewData() {
         List<int[][]> nextShapes = nextPieceQueue.stream()
@@ -308,6 +338,13 @@ public class SimpleBoard implements Board {
                 (int) currentOffset.getY());
     }
 
+    /**
+     * Calculates the Y coordinate where the current piece would land if dropped
+     * hard.
+     * Used for rendering the ghost piece.
+     *
+     * @return the Y coordinate (row index) of the ghost piece
+     */
     @Override
     public int getGhostYPosition() {
         int ghostY = (int) currentOffset.getY();
@@ -343,11 +380,22 @@ public class SimpleBoard implements Board {
         return ghostY;
     }
 
+    /**
+     * Gets the X coordinate of the ghost piece (same as current piece).
+     *
+     * @return the X coordinate (column index)
+     */
     @Override
     public int getGhostXPosition() {
         return (int) currentOffset.getX();
     }
 
+    /**
+     * Instantly drops the current piece to the lowest valid position.
+     * Uses ghost piece logic to determine landing spot.
+     *
+     * @return the number of rows dropped (for score calculation)
+     */
     @Override
     public int hardDrop() {
         int currentX = (int) currentOffset.getX();
@@ -434,6 +482,13 @@ public class SimpleBoard implements Board {
         return filledCorners >= 3;
     }
 
+    /**
+     * Scans the board for filled rows and clears them.
+     * Handles complex scoring factors like T-Spins and Back-to-Back clears.
+     *
+     * @return a ClearRow object describing how many rows were cleared and the
+     *         points awarded
+     */
     @Override
     public ClearRow clearRows() {
         // Use stored T-Spin state (checked before merging)
@@ -493,6 +548,11 @@ public class SimpleBoard implements Board {
         return elapsed >= LOCK_DELAY_MS;
     }
 
+    /**
+     * Gets the current score object.
+     *
+     * @return the score instance
+     */
     @Override
     public Score getScore() {
         return score;

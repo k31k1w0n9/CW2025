@@ -1,4 +1,4 @@
-package com.comp2042.logic.bricks;
+package com.comp2042.domain;
 
 import com.comp2042.domain.Brick;
 import com.comp2042.domain.RandomBrickGenerator;

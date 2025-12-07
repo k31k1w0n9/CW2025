@@ -190,11 +190,18 @@ public class ControlsPanel extends VBox {
         });
     }
 
+    /**
+     * Resets all key bindings to their default values and refreshes the UI.
+     */
     public void resetToDefaults() {
         keyBindings.resetToDefaults();
         refreshControls();
     }
 
+    /**
+     * Hides the "Reset Defaults" button from the view.
+     * Used when the panel is embedded in contexts where reset is not applicable.
+     */
     public void hideResetButton() {
         if (resetButton != null) {
             resetButton.setVisible(false);
@@ -202,6 +209,10 @@ public class ControlsPanel extends VBox {
         }
     }
 
+    /**
+     * Re-populates the list of controls based on current key bindings.
+     * Cleears existing rows and creates new ones for each action.
+     */
     private void refreshControls() {
         controlsBox.getChildren().clear();
         controlsBox.getChildren().addAll(
@@ -216,6 +227,13 @@ public class ControlsPanel extends VBox {
                 createControlRow("Pause", "PAUSE"));
     }
 
+    /**
+     * Creates a single row in the controls list for a specific action.
+     *
+     * @param action     the display name of the action
+     * @param bindingKey the key identifier for looking up bindings
+     * @return an HBox containing the label and rebind button
+     */
     private HBox createControlRow(String action, String bindingKey) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER);
@@ -261,6 +279,13 @@ public class ControlsPanel extends VBox {
         return row;
     }
 
+    /**
+     * Formats the current key bindings for display on the button.
+     * Joins multiple keys with " / ".
+     *
+     * @param bindingKey the action key to look up
+     * @return a formatted string of bound keys
+     */
     private String getCurrentKeysDisplay(String bindingKey) {
         List<KeyCode> keys = keyBindings.getKeysForAction(bindingKey);
         if (keys.isEmpty()) {
@@ -276,6 +301,13 @@ public class ControlsPanel extends VBox {
         return sb.toString();
     }
 
+    /**
+     * Returns a user-friendly display name for key codes.
+     * Converts arrow keys to symbols and handles special keys.
+     *
+     * @param key the KeyCode to format
+     * @return the display string
+     */
     private String getKeyDisplayName(KeyCode key) {
         return switch (key) {
             case UP -> "↑";
@@ -287,6 +319,13 @@ public class ControlsPanel extends VBox {
         };
     }
 
+    /**
+     * Initiates the key rebinding process for a specific action.
+     * Visual feedback indicates the system is waiting for input.
+     *
+     * @param bindingKey the action to rebind
+     * @param button     the button that triggered the rebind
+     */
     private void startRebinding(String bindingKey, Button button) {
         // Cancel any previous rebinding
         if (currentRebindButton != null && currentRebindButton != button) {
@@ -303,6 +342,9 @@ public class ControlsPanel extends VBox {
         requestFocus();
     }
 
+    /**
+     * Cancels the current rebinding operation, reverting UI state.
+     */
     private void cancelRebind() {
         if (currentRebindButton != null) {
             currentRebindButton.setText(getCurrentKeysDisplay(currentlyRebinding));
@@ -312,6 +354,9 @@ public class ControlsPanel extends VBox {
         currentRebindButton = null;
     }
 
+    /**
+     * @return CSS style string for standard key buttons
+     */
     private String getKeyButtonStyle() {
         return "-fx-font-size: 16px; " +
                 "-fx-text-fill: white; " +
@@ -325,6 +370,9 @@ public class ControlsPanel extends VBox {
                 "-fx-alignment: center;";
     }
 
+    /**
+     * @return CSS style string for hovered key buttons
+     */
     private String getKeyButtonHoverStyle() {
         return "-fx-font-size: 16px; " +
                 "-fx-text-fill: #FFD75C; " +
@@ -339,6 +387,9 @@ public class ControlsPanel extends VBox {
                 "-fx-alignment: center;";
     }
 
+    /**
+     * @return CSS style string for active rebinding state
+     */
     private String getRebindingStyle() {
         return "-fx-font-size: 16px; " +
                 "-fx-text-fill: #FF5C7C; " +
@@ -353,10 +404,18 @@ public class ControlsPanel extends VBox {
                 "-fx-alignment: center;";
     }
 
+    /**
+     * Returns the "Done" / "Back" button instance.
+     *
+     * @return the Button control
+     */
     public Button getDoneButton() {
         return doneButton;
     }
 
+    /**
+     * Hides the "Back" button from the view.
+     */
     public void hideBackButton() {
         if (doneButton != null) {
             doneButton.setVisible(false);
@@ -364,6 +423,9 @@ public class ControlsPanel extends VBox {
         }
     }
 
+    /**
+     * Hides the title label from the view.
+     */
     public void hideTitle() {
         if (titleLabel != null) {
             titleLabel.setVisible(false);

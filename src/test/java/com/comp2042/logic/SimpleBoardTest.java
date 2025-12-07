@@ -1,6 +1,5 @@
-package com.comp2042;
+package com.comp2042.logic;
 
-import com.comp2042.logic.SimpleBoard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

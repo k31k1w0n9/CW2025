@@ -376,18 +376,38 @@ public class MainMenuPanel extends StackPane {
         quitButton.setOnClickAction(action);
     }
 
+    /**
+     * Retrieves the "Start Game" button.
+     *
+     * @return the start game menu button
+     */
     public MenuButton getStartButton() {
         return startButton;
     }
 
+    /**
+     * Retrieves the "Customized" button.
+     *
+     * @return the customized menu button
+     */
     public MenuButton getCustomizedButton() {
         return customizedButton;
     }
 
+    /**
+     * Retrieves the "Settings" button.
+     *
+     * @return the settings menu button
+     */
     public MenuButton getSettingsButton() {
         return settingsButton;
     }
 
+    /**
+     * Retrieves the "Quit Game" button.
+     *
+     * @return the quit game menu button
+     */
     public MenuButton getQuitButton() {
         return quitButton;
     }

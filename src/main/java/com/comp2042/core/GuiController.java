@@ -161,6 +161,11 @@ public class GuiController implements Initializable {
     // Level and gravity system
     private LevelSystem levelSystem;
 
+    /**
+     * Retrieves the level system managing game progression.
+     *
+     * @return the LevelSystem instance
+     */
     public LevelSystem getLevelSystem() {
         return levelSystem;
     }
@@ -787,6 +792,10 @@ public class GuiController implements Initializable {
         gamePanel.setClip(gameClip);
     }
 
+    /**
+     * Handles the mouse hover event for the pause button.
+     * Updates the button style to provide visual feedback.
+     */
     @FXML
     public void onPauseButtonHover() {
         if (pauseButton != null) {
@@ -1057,6 +1066,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Updates the hold piece display with the provided shape.
+     * Clears the display if the shape is null.
+     *
+     * @param holdShape the 2D matrix representing the held piece, or null to clear
+     */
     public void updateHoldPiece(int[][] holdShape) {
         if (holdPieceGrid == null)
             return;
@@ -1622,6 +1637,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Refreshes the game background grid to reflect the current board state.
+     * Updates filled and empty cells based on the provided board matrix.
+     *
+     * @param board The 2D integer array representing the current board state
+     */
     public void refreshGameBackground(int[][] board) {
         // FIXED: Only update visible rows (game rows 2-21 map to display rows 0-19)
         // Prevent "chopped" bottom bricks by ensuring we only display rows 0-19
@@ -1936,10 +1957,21 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    /**
+     * Sets the input event listener for handling user controls.
+     *
+     * @param eventListener The listener that processes keyboard input
+     */
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
 
+    /**
+     * Binds a score property to the UI score display.
+     * Updates the score label whenever the property changes.
+     *
+     * @param integerProperty the score property to bind
+     */
     public void bindScore(IntegerProperty integerProperty) {
         if (scoreLabel != null) {
             scoreLabel.textProperty().bind(integerProperty.asString("%d"));
@@ -1959,6 +1991,11 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Handles the game over state transition.
+     * Stops the game loop, plays game over sound, checks for high scores,
+     * and displays the appropriate game over or name input screen.
+     */
     public void gameOver() {
         SoundManager.getInstance().playSound(SoundManager.SFX_GAME_OVER);
         timeLine.stop();
@@ -1999,6 +2036,13 @@ public class GuiController implements Initializable {
         gameOverPanel.updateHighScoresFromList(highScores, playerScore);
     }
 
+    /**
+     * Resets the game state and starts a new session.
+     * Clears game over screens, resets scoring and level systems,
+     * and initializes the board and UI for a fresh start.
+     *
+     * @param actionEvent The event that triggered the new game (can be null)
+     */
     public void newGame(ActionEvent actionEvent) {
         // FIXED: Stop and clear timeline before resetting
         if (timeLine != null) {
@@ -2067,6 +2111,12 @@ public class GuiController implements Initializable {
         });
     }
 
+    /**
+     * Pauses the game, showing the pause menu overlay.
+     * Also triggers the requestFocus to ensure the game panel keeps input focus.
+     *
+     * @param actionEvent The event triggering the pause (usually a button click)
+     */
     public void pauseGame(ActionEvent actionEvent) {
         gamePanel.requestFocus();
     }

@@ -578,6 +578,11 @@ public class SettingsPanel extends VBox {
         gridToggle.setStyle(getToggleButtonStyle(settingsManager.isGridLinesEnabled()));
     }
 
+    /**
+     * Retrieves the "Done" (or "Back") button used to exit the settings screen.
+     *
+     * @return the done button instance
+     */
     public Button getDoneButton() {
         return doneButton;
     }

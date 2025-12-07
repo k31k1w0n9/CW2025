@@ -808,22 +808,47 @@ public class CustomizePanel extends StackPane {
         updatePreview();
     }
 
+    /**
+     * Retrieves the "Save" button instance.
+     *
+     * @return the save button
+     */
     public Button getSaveButton() {
         return saveButton;
     }
 
+    /**
+     * Retrieves the "Reset" button instance.
+     *
+     * @return the reset button
+     */
     public Button getResetButton() {
         return resetButton;
     }
 
+    /**
+     * Retrieves the "Back" button instance.
+     *
+     * @return the back button
+     */
     public Button getBackButton() {
         return backButton;
     }
 
+    /**
+     * Retrieves the "Delete" button instance.
+     *
+     * @return the delete button
+     */
     public Button getDeleteButton() {
         return deleteButton;
     }
 
+    /**
+     * Saves the current design and settings for the selected piece.
+     * Persists updates to the global GameSettings for immediate use in gameplay.
+     * Also refreshes the UI to reflect changes.
+     */
     public void saveSettings() {
         GameSettings settings = GameSettings.getInstance();
         boolean isStandard = GameSettings.getInstance().isStandardPiece(selectedPiece);
@@ -856,6 +881,9 @@ public class CustomizePanel extends StackPane {
         System.out.println("Settings saved for: " + selectedPiece);
     }
 
+    /**
+     * Clears the current design grid, setting all cells to empty.
+     */
     public void resetGrid() {
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
@@ -865,6 +893,11 @@ public class CustomizePanel extends StackPane {
         refreshDesignGrid();
     }
 
+    /**
+     * Sets a callback to be executed when the back button is clicked.
+     *
+     * @param action the Runnable to execute
+     */
     public void setOnBackAction(Runnable action) {
         this.onBackAction = action;
     }
@@ -946,6 +979,13 @@ public class CustomizePanel extends StackPane {
         updatePreview();
     }
 
+    /**
+     * Checks if a specific cell in the current design grid is filled.
+     *
+     * @param row the row index (0-based)
+     * @param col the column index (0-based)
+     * @return true if the cell is filled (part of the piece), false otherwise
+     */
     public boolean isCellFilled(int row, int col) {
         if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
             throw new IllegalArgumentException("Cell coordinates out of bounds");

@@ -36,6 +36,17 @@ public class GameSettings {
         public int id;
         public int gridSize;
 
+        /**
+         * Creates a new PieceSettings object with the specified configuration.
+         *
+         * @param color          The display color of the piece.
+         * @param outlineEnabled Whether the piece should have an outline.
+         * @param enableInGame   Whether the piece can spawn in the game.
+         * @param spawnRate      The relative frequency of this piece spawning.
+         * @param id             The unique identifier for the piece.
+         * @param gridSize       The size of the grid (e.g., 4 for 4x4) used for this
+         *                       piece.
+         */
         public PieceSettings(Color color, boolean outlineEnabled, boolean enableInGame, int spawnRate, int id,
                 int gridSize) {
             this.color = color;
@@ -403,42 +414,74 @@ public class GameSettings {
     }
 
     // Legacy methods for backwards compatibility (now use default)
-    /** @return the default color for new custom pieces. */
+    /**
+     * Retrieves the default color for new custom pieces.
+     *
+     * @return the default Color
+     */
     public Color getCustomPieceColor() {
         return defaultCustomPieceColor;
     }
 
-    /** @param customPieceColor the default color for new custom pieces. */
+    /**
+     * Sets the default color for new custom pieces.
+     *
+     * @param customPieceColor the new default Color
+     */
     public void setCustomPieceColor(Color customPieceColor) {
         this.defaultCustomPieceColor = customPieceColor;
     }
 
-    /** @return true if outlines are enabled by default for new pieces. */
+    /**
+     * Checks if outlines are enabled by default for new pieces.
+     *
+     * @return true if outlines are enabled, false otherwise
+     */
     public boolean isOutlineEnabled() {
         return defaultOutlineEnabled;
     }
 
-    /** @param outlineEnabled the default outline setting for new pieces. */
+    /**
+     * Sets the default outline setting for new pieces.
+     *
+     * @param outlineEnabled true to enable outlines, false to disable
+     */
     public void setOutlineEnabled(boolean outlineEnabled) {
         this.defaultOutlineEnabled = outlineEnabled;
     }
 
-    /** @return true if new pieces are enabled in-game by default. */
+    /**
+     * Checks if new pieces are enabled in-game by default.
+     *
+     * @return true if enabled, false otherwise
+     */
     public boolean isEnableInGame() {
         return enableInGame;
     }
 
-    /** @param enableInGame the default in-game status for new pieces. */
+    /**
+     * Sets the default in-game enablement status for new pieces.
+     *
+     * @param enableInGame true to enable, false to disable
+     */
     public void setEnableInGame(boolean enableInGame) {
         this.enableInGame = enableInGame;
     }
 
-    /** @return the default spawn rate for new pieces. */
+    /**
+     * Retrieves the default spawn rate for new pieces.
+     *
+     * @return the spawn rate (0-10)
+     */
     public int getSpawnRate() {
         return spawnRate;
     }
 
-    /** @param spawnRate the default spawn rate for new pieces. */
+    /**
+     * Sets the default spawn rate for new pieces.
+     *
+     * @param spawnRate the new spawn rate (0-10)
+     */
     public void setSpawnRate(int spawnRate) {
         this.spawnRate = spawnRate;
     }

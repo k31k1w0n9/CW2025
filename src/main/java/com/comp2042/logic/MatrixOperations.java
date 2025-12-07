@@ -8,6 +8,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for performing matrix operations on the game board.
+ * Provides static methods for collision detection, matrix merging, line
+ * clearing,
+ * and deep copying of grid data.
+ * This class is a collection of pure functions and cannot be instantiated.
+ */
 public class MatrixOperations {
 
     private MatrixOperations() {
@@ -283,11 +290,13 @@ public class MatrixOperations {
     }
 
     /**
-     * CRITICAL: Deep copy a list of 2D arrays
-     * This method is used by Brick classes to get shape matrices
-     * 
-     * @param list List of shape matrices
-     * @return Deep copied list
+     * Creates a deep copy of a list of 2D integer arrays.
+     * This ensures that the original shape data remains immutable when logical
+     * operations
+     * (like rotation) are performed on the copies.
+     *
+     * @param list The list of 2D arrays to copy
+     * @return A new List containing deep copies of all arrays in the original list
      */
     public static List<int[][]> deepCopyList(List<int[][]> list) {
         return list.stream()
